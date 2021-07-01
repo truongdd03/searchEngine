@@ -11,6 +11,10 @@
 
 #include <lexbor/html/parser.h>
 
+#include <boost/foreach.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/xml_parser.hpp>
+
 using namespace std;
 
 const string src = "https://en.wikipedia.org";
@@ -145,13 +149,15 @@ int main() {
     curlpp::Cleanup myCleanup;
 
     //crawl("https://en.wikipedia.org/wiki/Main_Page");
-    q.push("https://en.wikipedia.org/wiki/Main_Page");
+    //q.push("https://en.wikipedia.org/wiki/Main_Page");
 
-    while (!q.empty()) {
-        string link = q.front();
-        q.pop();
-        crawl(link);
-    }
+    //while (!q.empty()) {
+    //    string link = q.front();
+    //    q.pop();
+    //    crawl(link);
+    //}
+
+    cout << fetchLink("https://www.boost.org/doc/libs/1_76_0/doc/html/boost_asio/tutorial.html");
 
     return 0;
 }

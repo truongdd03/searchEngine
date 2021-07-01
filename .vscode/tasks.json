@@ -9,8 +9,6 @@
 		"command": "/usr/bin/clang++",
 		"args": [
 		  "-std=c++17",
-		  "-I",
-		  "/Users/dongtruong/Documents/cs/c++/searchEngine/cpp-netlib-0.13.0",
 		  "-lcurl",
 		  "-lcurlpp",
 		  "-stdlib=libc++",

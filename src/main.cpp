@@ -1,21 +1,19 @@
+#include <boost/network/protocol/http/client.hpp>
 #include <iostream>
-#include <stdio.h>
-#include <curlpp/cURLpp.hpp>
-#include <curlpp/Options.hpp>
-#include <curlpp/Easy.hpp>
-#include <sstream>
-#include <fstream>
 
-using namespace std;
+int main(int argc, char *argv[]) {
+    using namespace boost::network;
 
-int main()
-{
-    curlpp::Cleanup myCleanup;
+    if (argc != 2) {
+        std::cout << "Usage: " << argv[0] << " [url]" << std::endl;
+        return 1;
+    }
 
-    curlpp::options::Url myUrl(std::string("https://en.wikipedia.org/wiki/Wikipedia:GLAM/Newsletter"));
-    curlpp::Easy myRequest;
-    myRequest.setOpt(myUrl);
+    http::client client;
+    http::client::request request(argv[1]);
+    request << header("Connection", "close");
+    http::client::response response = client.get(request);
+    std::cout << body(response) << std::endl;
 
-    myRequest.perform();
     return 0;
 }

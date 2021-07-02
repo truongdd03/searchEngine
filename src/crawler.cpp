@@ -4,14 +4,12 @@
 #include <vector>
 #include <fstream>
 #include <queue>
+#include <sstream>
 
 #include <curlpp/cURLpp.hpp>
 #include <curlpp/Options.hpp>
 #include <curlpp/Easy.hpp>
 
-#include <lexbor/html/parser.h>
-
-#include <boost/foreach.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
@@ -158,6 +156,10 @@ int main() {
     //}
 
     cout << fetchLink("https://www.boost.org/doc/libs/1_76_0/doc/html/boost_asio/tutorial.html");
+
+    //istringstream str = istringstream(fetchLink("https://www.boost.org/doc/libs/1_76_0/doc/html/boost_asio/tutorial.html"));
+
+
 
     return 0;
 }

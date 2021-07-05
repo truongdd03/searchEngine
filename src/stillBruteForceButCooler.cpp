@@ -102,22 +102,38 @@ void crawl(string link) {
 
 }
 
-int main() {
-    curlpp::Cleanup myCleanup;
-
-    q.push("http://www.cplusplus.com");
-
-    vector <thread> threads;
+void process() {
     while (!q.empty()) {
         myMutex.lock();
         string link = q.front();
         myMutex.unlock();
 
-        threads.push_back(thread(crawl, link));
         q.pop();
+        crawl(link);
 
-        threads.back().join();
+    }
+}
+int main() {
+    curlpp::Cleanup myCleanup;
 
+    q.push("http://www.cplusplus.com");
+    q.push("http://www.cplusplus.com/articles/");
+    q.push("http://www.cplusplus.com/doc/");
+    q.push("http://www.cplusplus.com/doc/");
+    q.push("http://www.cplusplus.com/forum/");
+    q.push("http://www.cplusplus.com/info/");
+    q.push("http://www.cplusplus.com/articles/i86AC542/");
+    q.push("http://www.cplusplus.com/articles/z1hv0pDG/");
+    q.push("http://www.cplusplus.com/articles/y8vU7k9E/");
+    q.push("http://www.cplusplus.com/articles/zTA0RXSz/");
+    q.push("http://www.cplusplus.com/user/Viktar_Khutko/");
+
+    for (int i = 0; i < 10; ++i) {
+        threads.push_back(thread(process));
+    }
+
+    for (int i = 0; i < threads.size(); ++i) {
+        threads[i].join();
     }
 
     return 0;

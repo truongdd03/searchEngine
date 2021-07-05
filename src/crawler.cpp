@@ -22,20 +22,6 @@ queue <string> q;
 mutex myMutex;
 set <string> links, titles;
 
-bool validateLink(string link) {
-    if (link [0] == '/' && link[1] == '/') {
-        cout << "INVALID " << link << "\n\n";    
-        return false;
-    }
-
-    if (link[0] != '/' && link.find("http://") != 0) {
-        cout << "INVALID " << link << "\n\n";    
-        return false;
-    } 
-
-    return true;
-}
-
 string reformat(string link) {
     if (link[0] == '/') return src + link;
     return link;
@@ -54,11 +40,11 @@ string extractContent(string link) {
 
     }
     catch( curlpp::RuntimeError &e ) {
-        cout << e.what() << "\n\n";
+        //cout << e.what() << "\n\n";
     }
 
     catch( curlpp::LogicError &e ) {
-        cout << e.what() << "\n\n";
+        //cout << e.what() << "\n\n";
     }
 
     return "";
@@ -84,62 +70,77 @@ string extractTitle(string str) {
     }
 }
 
+bool isExisted(string content, string link) {
+    string title = extractTitle(content);
+    
+    if (titles.find(title) != titles.end()) return true; 
+
+    if (links.find(link) != links.end() || link == "") return true; 
+
+    titles.insert(title);
+    links.insert(link);
+    return false;
+}
+
 int siz = 1;
 
 void crawl(string link) {
     string content = extractContent(link);
 
-    string title = extractTitle(content);
-    if (titles.find(title) != titles.end()) { 
-        cout << "EXISTED " << link << "\n\n";
-        return; 
-    }
-
-    if (links.find(link) != links.end() || link == "") { 
-        cout << "EXISTED " << link << "\n\n";
-        return; 
+    if (isExisted(content, link)) {
+        //cout << "EXISTED " << link << "\n\n";
+        return;
     }
 
     cout << "NEW #" << siz++ << " " << link << "\n\n";
 
-    titles.insert(title);
-    links.insert(link);
-
     set<string> linksOfPage = extractLinks(content);
     set<string>::iterator itr;
 
-    for (itr = linksOfPage.begin(); itr != linksOfPage.end(); itr++) {
-        string newLink = *itr;
-
-        if (!validateLink(newLink)) return;
-
-        newLink = reformat(newLink);
-        q.push(newLink);
-    }
+    for (itr = linksOfPage.begin(); itr != linksOfPage.end(); itr++)
+        q.push(reformat(*itr));
 
 }
 
+void process() {
+    while (!q.empty()) {
+        myMutex.lock();
+        string link = q.front();
+        myMutex.unlock();
+
+        q.pop();
+        crawl(link);
+
+    }
+}
 int main() {
     curlpp::Cleanup myCleanup;
 
-    //links.insert("https://en.wikipedia.org/wiki/Main_Page");
     q.push("http://www.cplusplus.com");
 
-    //int i = 1;
-    vector <thread> threads;
-    while (!q.empty()) {
-        //myMutex.lock();
-        string link = q.front();
-        //myMutex.unlock();
+    q.push("http://www.cplusplus.com/articles/");
+    q.push("http://www.cplusplus.com/doc/");
+    q.push("http://www.cplusplus.com/info/");
+    q.push("http://www.cplusplus.com/forum/");
 
-        //cout << "NEW #" << i++ << " " << link << "\n\n";
+    q.push("http://www.cplusplus.com/reference/std/");
+    q.push("http://www.cplusplus.com/reference/clibrary/");
+    q.push("http://www.cplusplus.com/reference/stl/");
+    q.push("http://www.cplusplus.com/reference/iolibrary/");
+    q.push("http://www.cplusplus.com/reference/multithreading/");
 
-        //threads.push_back(thread(crawl, link));
-        q.pop();
+    q.push("http://www.cplusplus.com/articles/visualcpp/");
+    q.push("http://www.cplusplus.com/articles/linux/");
+    q.push("http://www.cplusplus.com/articles/sourcecode/");
+    q.push("http://www.cplusplus.com/articles/tips/");
+    q.push("http://www.cplusplus.com/articles/tools/");
 
-        //threads.back().join();
+    for (int i = 0; i < 15; ++i) {
+        threads.push_back(thread(process));
+    }
 
-        crawl(link);
+    for (int i = 0; i < threads.size(); ++i) {
+        threads[i].join();
     }
 
     return 0;

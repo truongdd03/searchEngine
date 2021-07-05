@@ -22,20 +22,6 @@ queue <string> q;
 mutex myMutex;
 set <string> links, titles;
 
-bool validateLink(string link) {
-    if (link [0] == '/' && link[1] == '/') {
-        cout << "INVALID " << link << "\n\n";    
-        return false;
-    }
-
-    if (link[0] != '/' && link.find("http://") != 0) {
-        cout << "INVALID " << link << "\n\n";    
-        return false;
-    } 
-
-    return true;
-}
-
 string reformat(string link) {
     if (link[0] == '/') return src + link;
     return link;
@@ -84,62 +70,54 @@ string extractTitle(string str) {
     }
 }
 
+bool isExisted(string content, string link) {
+    string title = extractTitle(content);
+    
+    if (titles.find(title) != titles.end()) return true; 
+
+    if (links.find(link) != links.end() || link == "") return true; 
+
+    titles.insert(title);
+    links.insert(link);
+    return false;
+}
+
 int siz = 1;
 
 void crawl(string link) {
     string content = extractContent(link);
 
-    string title = extractTitle(content);
-    if (titles.find(title) != titles.end()) { 
+    if (isExisted(content, link)) {
         cout << "EXISTED " << link << "\n\n";
-        return; 
-    }
-
-    if (links.find(link) != links.end() || link == "") { 
-        cout << "EXISTED " << link << "\n\n";
-        return; 
+        return;
     }
 
     cout << "NEW #" << siz++ << " " << link << "\n\n";
 
-    titles.insert(title);
-    links.insert(link);
-
     set<string> linksOfPage = extractLinks(content);
     set<string>::iterator itr;
 
-    for (itr = linksOfPage.begin(); itr != linksOfPage.end(); itr++) {
-        string newLink = *itr;
-
-        if (!validateLink(newLink)) return;
-
-        newLink = reformat(newLink);
-        q.push(newLink);
-    }
+    for (itr = linksOfPage.begin(); itr != linksOfPage.end(); itr++)
+        q.push(reformat(*itr));
 
 }
 
 int main() {
     curlpp::Cleanup myCleanup;
 
-    //links.insert("https://en.wikipedia.org/wiki/Main_Page");
     q.push("http://www.cplusplus.com");
 
-    //int i = 1;
     vector <thread> threads;
     while (!q.empty()) {
-        //myMutex.lock();
+        myMutex.lock();
         string link = q.front();
-        //myMutex.unlock();
+        myMutex.unlock();
 
-        //cout << "NEW #" << i++ << " " << link << "\n\n";
-
-        //threads.push_back(thread(crawl, link));
+        threads.push_back(thread(crawl, link));
         q.pop();
 
-        //threads.back().join();
+        threads.back().join();
 
-        crawl(link);
     }
 
     return 0;

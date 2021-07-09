@@ -6,6 +6,7 @@
         "queue": "cpp",
         "vector": "cpp",
         "iosfwd": "cpp",
-        "set": "cpp"
+        "set": "cpp",
+        "filesystem": "cpp"
     }
 }

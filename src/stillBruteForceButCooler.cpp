@@ -16,7 +16,7 @@
 
 using namespace std;
 
-const string src = "http://www.cplusplus.com";
+const string src = "https://en.wikipedia.org/";
 vector <thread> threads;
 queue <string> q;
 mutex myMutex;
@@ -40,11 +40,11 @@ string extractContent(string link) {
 
     }
     catch( curlpp::RuntimeError &e ) {
-        cout << e.what() << "\n\n";
+        cout << "LINK: " << link << " ERROR: " << e.what() << "\n\n";
     }
 
     catch( curlpp::LogicError &e ) {
-        cout << e.what() << "\n\n";
+        cout << "LINK: " << link << " ERROR: " << e.what() << "\n\n";
     }
 
     return "";
@@ -103,38 +103,38 @@ void crawl(string link) {
 }
 
 void process() {
-    while (!q.empty()) {
+    while (true) {
+
         myMutex.lock();
+                
+        if (q.empty()) {
+            return;
+        }
+
         string link = q.front();
+        q.pop();
         myMutex.unlock();
 
-        q.pop();
         crawl(link);
+        //cout << "YEAh\n";
 
     }
 }
-int main() {
-    curlpp::Cleanup myCleanup;
 
-    q.push("http://www.cplusplus.com");
-    q.push("http://www.cplusplus.com/articles/");
-    q.push("http://www.cplusplus.com/doc/");
-    q.push("http://www.cplusplus.com/doc/");
-    q.push("http://www.cplusplus.com/forum/");
-    q.push("http://www.cplusplus.com/info/");
-    q.push("http://www.cplusplus.com/articles/i86AC542/");
-    q.push("http://www.cplusplus.com/articles/z1hv0pDG/");
-    q.push("http://www.cplusplus.com/articles/y8vU7k9E/");
-    q.push("http://www.cplusplus.com/articles/zTA0RXSz/");
-    q.push("http://www.cplusplus.com/user/Viktar_Khutko/");
-
-    for (int i = 0; i < 10; ++i) {
+void run() {
+   for (int i = 0; i < 15; ++i) {
         threads.push_back(thread(process));
     }
 
     for (int i = 0; i < threads.size(); ++i) {
         threads[i].join();
     }
+}
+int main() {
+    curlpp::Cleanup myCleanup;
+
+    q.push("https://en.wikipedia.org//wiki/Wikipedia_talk:WikiProject_Mathematics/Graphics");
+    process();
 
     return 0;
 }

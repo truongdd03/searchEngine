@@ -1,10 +1,11 @@
 #include <iostream>
 #include <stdio.h>
-#include <sstream>
 #include <vector>
-#include <fstream>
 #include <queue>
 #include <sstream>
+#include <regex>
+#include <thread>
+#include <mutex>
 
 #include <curlpp/cURLpp.hpp>
 #include <curlpp/Options.hpp>
@@ -15,141 +16,128 @@
 
 using namespace std;
 
-const string src = "http://www.cplusplus.com";
-
-set <string> links, titles;
+const string src = "https://en.wikipedia.org/";
+vector <thread> threads;
 queue <string> q;
+mutex myMutex;
+set <string> links, titles;
 
-string fetchTitle(int &i, string &content) {
-    int num = 1; string title = "";
+string reformat(string link) {
+    if (link[0] == '/') return src + link;
+    return link;
+}
 
-    while (true) {
-        if (content[i] == '<') ++num;
-        else if (content[i] == '>') --num;
-        else title += content[i];
+string extractContent(string link) {
 
-        string cur = "";
-        for (int j = i+1; j <= i+8; ++j) {
-            cur += content[j];
+    try {
+        curlpp::Cleanup myCleanup;
+
+        {
+          ostringstream os;
+          os << curlpp::options::Url(link);
+          return os.str();
         }
-        if (cur == "</title>") {
-            i += 9;
-            return title;
-        }
 
-        ++i;
+    }
+    catch( curlpp::RuntimeError &e ) {
+        //cout << e.what() << "\n\n";
+    }
+
+    catch( curlpp::LogicError &e ) {
+        //cout << e.what() << "\n\n";
+    }
+
+    return "";
+}
+
+set<string> extractLinks(string str) {
+    static const regex hl_regex( "<a href=\"(.*?)\"", regex_constants::icase  ) ;
+
+    return { 
+        sregex_token_iterator( str.begin(), str.end(), hl_regex, 1 ),
+        sregex_token_iterator{} 
+    } ;
+}
+
+string extractTitle(string str) {
+    static const regex hl_regex( "<title>(.*?)</title>", regex_constants::icase  ) ;
+    smatch match;
+
+    if ( regex_search(str, match, hl_regex) ) {
+        return match[0];
+    } else {
+        return "ERROR";
     }
 }
 
-bool isExisted(string title) {
-    if (titles.find(title) != titles.end()) return true;
-    return false;
-}
-
-void skip(int &i, string &content) {
-    int num = 1;
-    while (num != 0) {
-        if (content[i] == '<') ++num;
-        if (content[i] == '>') --num;
-        ++i;
-    }
-}
-
-bool isLinkExisted(string link) {
+bool isExisted(string content, string link) {
+    string title = extractTitle(content);
     
-    for (int i = 0; i < link.length(); ++i) {
-        if (link[i] == ' ') return true;
-    }
+    if (titles.find(title) != titles.end()) return true; 
 
-    if (links.find(link) != links.end()) return true;
+    if (links.find(link) != links.end() || link == "") return true; 
 
+    titles.insert(title);
+    links.insert(link);
     return false;
 }
 
-string fetchLink(string link) {
-    curlpp::options::Url myUrl(link);
-    curlpp::Easy myRequest;
-    myRequest.setOpt(myUrl);
-    ostringstream os;
-    os << myRequest;
-
-    return os.str();
-}
+int siz = 1;
 
 void crawl(string link) {
+    string content = extractContent(link);
 
-    string content = fetchLink(link);
-
-    int i = 5;
-    while (i < content.length()) {
-        string cur = "";
-        for (int j = i-5; j <= i; ++j) {
-            cur += content[j];
-        }
-        ++i;
-
-        if (cur == "title>") {
-            string title = fetchTitle(i, content);
-
-            if (isExisted(title)) return;
-            else {
-                cout << title << "\n";
-                cout << "#" << links.size() << "\n";
-                cout << link << "\n\n";
-
-                links.insert(link);
-                titles.insert(title);
-            }
-        }
-
-        string curb = cur.substr(1, cur.length()-1);
-        if (cur == "<style" || curb == "<link") {
-            skip(i, content);
-        }
-
-        if (cur == "href=\"") {
-            string newLink = "";
-
-            bool kt = true;
-            while (content[i] != '\"') {
-                newLink += content[i++];
-                if ( newLink[0] != '/' || (newLink.length() >= 2 && newLink[1] == '/') ) {
-                    kt = false;
-                    break;
-                }
-            }
-
-            if ((newLink[0] == '/' && newLink[1] != '/') && kt == true) {
-                
-                if (isLinkExisted(newLink) == false) {
-
-                    //cout << newLink << "\n\n";
-
-                    newLink = src + newLink;
-                    q.push(newLink);
-                    //links.insert(newLink);
-                }
-
-            }
-        }
+    if (isExisted(content, link)) {
+        //cout << "EXISTED " << link << "\n\n";
+        return;
     }
+
+    cout << "NEW #" << siz++ << " " << link << "\n\n";
+
+    set<string> linksOfPage = extractLinks(content);
+    set<string>::iterator itr;
+
+    for (itr = linksOfPage.begin(); itr != linksOfPage.end(); itr++)
+        q.push(reformat(*itr));
+
 }
 
+void process() {
+    while (!q.empty()) {
+        myMutex.lock();
+        string link = q.front();
+        myMutex.unlock();
+
+        q.pop();
+        crawl(link);
+
+    }
+}
 int main() {
     curlpp::Cleanup myCleanup;
 
-    //crawl("https://en.wikipedia.org/wiki/Main_Page");
-    q.push("http://www.cplusplus.com");
+    q.push("https://en.wikipedia.org/wiki/Main_Page");
+    q.push("https://en.wikipedia.org/wiki/Main_Page");
+    q.push("https://en.wikipedia.org/wiki/Main_Page");
+    q.push("https://en.wikipedia.org/wiki/Main_Page");
+    q.push("https://en.wikipedia.org/wiki/Main_Page");
+    q.push("https://en.wikipedia.org/wiki/Main_Page");
+    q.push("https://en.wikipedia.org/wiki/Main_Page");
+    q.push("https://en.wikipedia.org/wiki/Main_Page");
+    q.push("https://en.wikipedia.org/wiki/Main_Page");
+    q.push("https://en.wikipedia.org/wiki/Main_Page");
+    q.push("https://en.wikipedia.org/wiki/Main_Page");
+    q.push("https://en.wikipedia.org/wiki/Main_Page");
+    q.push("https://en.wikipedia.org/wiki/Main_Page");
+    q.push("https://en.wikipedia.org/wiki/Main_Page");
+    q.push("https://en.wikipedia.org/wiki/Main_Page");
 
-    //int i = 1;
-    while (!q.empty()) {
-        string link = q.front();
+    for (int i = 0; i < 15; ++i) {
+        threads.push_back(thread(process));
+    }
 
-        //cout << "#" << i++ << " " << q.size() << "\n";
-        //cout << link << "\n\n";
-        
-        q.pop();
-        crawl(link);
+    for (int i = 0; i < threads.size(); ++i) {
+        threads[i].join();
     }
 
     return 0;

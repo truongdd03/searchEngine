@@ -16,7 +16,7 @@
 
 using namespace std;
 
-const string src = "http://www.cplusplus.com";
+const string src = "https://en.wikipedia.org/";
 vector <thread> threads;
 queue <string> q;
 mutex myMutex;
@@ -40,11 +40,11 @@ string extractContent(string link) {
 
     }
     catch( curlpp::RuntimeError &e ) {
-        //cout << e.what() << "\n\n";
+        cout << "LINK: " << link << " ERROR: " << e.what() << "\n\n";
     }
 
     catch( curlpp::LogicError &e ) {
-        //cout << e.what() << "\n\n";
+        cout << "LINK: " << link << " ERROR: " << e.what() << "\n\n";
     }
 
     return "";
@@ -88,7 +88,7 @@ void crawl(string link) {
     string content = extractContent(link);
 
     if (isExisted(content, link)) {
-        //cout << "EXISTED " << link << "\n\n";
+        cout << "EXISTED " << link << "\n\n";
         return;
     }
 
@@ -97,51 +97,73 @@ void crawl(string link) {
     set<string> linksOfPage = extractLinks(content);
     set<string>::iterator itr;
 
-    for (itr = linksOfPage.begin(); itr != linksOfPage.end(); itr++)
+    for (itr = linksOfPage.begin(); itr != linksOfPage.end(); itr++) {
+        myMutex.lock();
         q.push(reformat(*itr));
+        myMutex.unlock();
+    }
 
 }
 
 void process() {
-    while (!q.empty()) {
+    while (true) {
+
         myMutex.lock();
+                
+        if (q.empty()) {
+            terminate();
+            return;
+        }
+        
         string link = q.front();
+        q.pop();
         myMutex.unlock();
 
-        q.pop();
         crawl(link);
+        //cout << "YEAh\n";
 
     }
 }
-int main() {
-    curlpp::Cleanup myCleanup;
 
-    q.push("http://www.cplusplus.com");
-
-    q.push("http://www.cplusplus.com/articles/");
-    q.push("http://www.cplusplus.com/doc/");
-    q.push("http://www.cplusplus.com/info/");
-    q.push("http://www.cplusplus.com/forum/");
-
-    q.push("http://www.cplusplus.com/reference/std/");
-    q.push("http://www.cplusplus.com/reference/clibrary/");
-    q.push("http://www.cplusplus.com/reference/stl/");
-    q.push("http://www.cplusplus.com/reference/iolibrary/");
-    q.push("http://www.cplusplus.com/reference/multithreading/");
-
-    q.push("http://www.cplusplus.com/articles/visualcpp/");
-    q.push("http://www.cplusplus.com/articles/linux/");
-    q.push("http://www.cplusplus.com/articles/sourcecode/");
-    q.push("http://www.cplusplus.com/articles/tips/");
-    q.push("http://www.cplusplus.com/articles/tools/");
-
-    for (int i = 0; i < 15; ++i) {
+void run() {
+    int numberOfThreads = 0;
+    cin >> numberOfThreads;
+    for (int i = 0; i < numberOfThreads; ++i) {
         threads.push_back(thread(process));
     }
 
     for (int i = 0; i < threads.size(); ++i) {
         threads[i].join();
     }
+}
+int main() {
+    curlpp::Cleanup myCleanup;
+
+    q.push("https://en.wikipedia.org/wiki/Main_Page");
+
+    q.push("https://en.wikipedia.org/wiki/Portal:The_arts");
+    q.push("https://en.wikipedia.org/wiki/Portal:History");
+    q.push("https://en.wikipedia.org/wiki/Portal:Society");
+    q.push("https://en.wikipedia.org/wiki/Portal:Biography");
+    q.push("https://en.wikipedia.org/wiki/Portal:Mathematics");
+    q.push("https://en.wikipedia.org/wiki/Portal:Technology");
+    q.push("https://en.wikipedia.org/wiki/Portal:Geography");
+    q.push("https://en.wikipedia.org/wiki/Portal:Science");
+    q.push("https://en.wikipedia.org/wiki/Wikipedia:Contents/Portals");
+
+    q.push("https://en.wikipedia.org/wiki/Wikipedia:Contents");
+    q.push("https://en.wikipedia.org/wiki/Portal:Current_events");
+    q.push("https://en.wikipedia.org/wiki/Wikipedia:About");
+    q.push("https://en.wikipedia.org/wiki/Wikipedia:Contact_us");
+    q.push("https://en.wikipedia.org/wiki/Help:Contents");
+
+    q.push("https://en.wikipedia.org/wiki/Special:WhatLinksHere/Help:Introduction");
+    q.push("https://en.wikipedia.org/wiki/Wikipedia:Community_portal");
+    q.push("https://en.wikipedia.org/wiki/Special:WhatLinksHere/Main_Page");
+    q.push("https://en.wikipedia.org/wiki/Special:SpecialPages");
+    q.push("https://en.wikipedia.org/w/index.php?title=Main_Page&action=info");
+
+    run();
 
     return 0;
 }

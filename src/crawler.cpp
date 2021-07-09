@@ -24,6 +24,7 @@ set <string> links, titles;
 
 string reformat(string link) {
     if (link[0] == '/') return src + link;
+    if (link.rfind(src) != 0) return "";
     return link;
 }
 
@@ -40,11 +41,11 @@ string extractContent(string link) {
 
     }
     catch( curlpp::RuntimeError &e ) {
-        cout << "LINK: " << link << " ERROR: " << e.what() << "\n\n";
+        //cout << "LINK: " << link << " ERROR: " << e.what() << "\n\n";
     }
 
     catch( curlpp::LogicError &e ) {
-        cout << "LINK: " << link << " ERROR: " << e.what() << "\n\n";
+        //cout << "LINK: " << link << " ERROR: " << e.what() << "\n\n";
     }
 
     return "";
@@ -88,7 +89,7 @@ void crawl(string link) {
     string content = extractContent(link);
 
     if (isExisted(content, link)) {
-        cout << "EXISTED " << link << "\n\n";
+        //cout << "EXISTED " << link << "\n\n";
         return;
     }
 
@@ -99,7 +100,8 @@ void crawl(string link) {
 
     for (itr = linksOfPage.begin(); itr != linksOfPage.end(); itr++) {
         myMutex.lock();
-        q.push(reformat(*itr));
+        string str = reformat(*itr);
+        if (str != "") q.push(str);
         myMutex.unlock();
     }
 
@@ -111,6 +113,7 @@ void process() {
         myMutex.lock();
                 
         if (q.empty()) {
+            cout << "########################EXIT THREAD#########################";
             terminate();
             return;
         }
@@ -139,30 +142,7 @@ void run() {
 int main() {
     curlpp::Cleanup myCleanup;
 
-    q.push("https://en.wikipedia.org/wiki/Main_Page");
-
-    q.push("https://en.wikipedia.org/wiki/Portal:The_arts");
-    q.push("https://en.wikipedia.org/wiki/Portal:History");
-    q.push("https://en.wikipedia.org/wiki/Portal:Society");
-    q.push("https://en.wikipedia.org/wiki/Portal:Biography");
-    q.push("https://en.wikipedia.org/wiki/Portal:Mathematics");
-    q.push("https://en.wikipedia.org/wiki/Portal:Technology");
-    q.push("https://en.wikipedia.org/wiki/Portal:Geography");
-    q.push("https://en.wikipedia.org/wiki/Portal:Science");
-    q.push("https://en.wikipedia.org/wiki/Wikipedia:Contents/Portals");
-
-    q.push("https://en.wikipedia.org/wiki/Wikipedia:Contents");
-    q.push("https://en.wikipedia.org/wiki/Portal:Current_events");
-    q.push("https://en.wikipedia.org/wiki/Wikipedia:About");
-    q.push("https://en.wikipedia.org/wiki/Wikipedia:Contact_us");
-    q.push("https://en.wikipedia.org/wiki/Help:Contents");
-
-    q.push("https://en.wikipedia.org/wiki/Special:WhatLinksHere/Help:Introduction");
-    q.push("https://en.wikipedia.org/wiki/Wikipedia:Community_portal");
-    q.push("https://en.wikipedia.org/wiki/Special:WhatLinksHere/Main_Page");
-    q.push("https://en.wikipedia.org/wiki/Special:SpecialPages");
-    q.push("https://en.wikipedia.org/w/index.php?title=Main_Page&action=info");
-
+    crawl("https://en.wikipedia.org/wiki/Main_Page");
     run();
 
     return 0;

@@ -7,6 +7,8 @@
 #include <thread>
 #include <mutex>
 
+#include "parser.h"
+
 #include <curlpp/cURLpp.hpp>
 #include <curlpp/Options.hpp>
 #include <curlpp/Easy.hpp>
@@ -14,27 +16,25 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
-using namespace std;
+const std::string src = "https://en.wikipedia.org/";
+std::vector <std::thread> threads;
+std::queue <std::string> q;
+std::mutex myMutex;
+std::set <std::string> links, titles;
 
-const string src = "https://en.wikipedia.org/";
-vector <thread> threads;
-queue <string> q;
-mutex myMutex;
-set <string> links, titles;
-
-string reformat(string link) {
+std::string reformat(std::string link) {
     if (link[0] == '/') return src + link;
     if (link.rfind(src) != 0) return "";
     return link;
 }
 
-string extractContent(string link) {
+std::string extractContent(std::string link) {
 
     try {
         curlpp::Cleanup myCleanup;
 
         {
-          ostringstream os;
+          std::ostringstream os;
           os << curlpp::options::Url(link);
           return os.str();
         }
@@ -51,18 +51,18 @@ string extractContent(string link) {
     return "";
 }
 
-set<string> extractLinks(string str) {
-    static const regex hl_regex( "<a href=\"(.*?)\"", regex_constants::icase  ) ;
+std::set<std::string> extractLinks(std::string str) {
+    static const std::regex hl_regex( "<a href=\"(.*?)\"", std::regex_constants::icase  ) ;
 
     return { 
-        sregex_token_iterator( str.begin(), str.end(), hl_regex, 1 ),
-        sregex_token_iterator{} 
-    } ;
+        std::sregex_token_iterator( str.begin(), str.end(), hl_regex, 1 ),
+        std::sregex_token_iterator{} 
+    };
 }
 
-string extractTitle(string str) {
-    static const regex hl_regex( "<title>(.*?)</title>", regex_constants::icase  ) ;
-    smatch match;
+std::string extractTitle(std::string str) {
+    static const std::regex hl_regex( "<title>(.*?)</title>", std::regex_constants::icase  ) ;
+    std::smatch match;
 
     if ( regex_search(str, match, hl_regex) ) {
         return match[0];
@@ -71,8 +71,8 @@ string extractTitle(string str) {
     }
 }
 
-bool isExisted(string content, string link) {
-    string title = extractTitle(content);
+bool isExisted(std::string content, std::string link) {
+    std::string title = extractTitle(content);
     
     if (titles.find(title) != titles.end()) return true; 
 
@@ -85,22 +85,22 @@ bool isExisted(string content, string link) {
 
 int siz = 1;
 
-void crawl(string link) {
-    string content = extractContent(link);
+void crawl(std::string link) {
+    std::string content = extractContent(link);
 
     if (isExisted(content, link)) {
         //cout << "EXISTED " << link << "\n\n";
         return;
     }
 
-    cout << "NEW #" << siz++ << " " << link << "\n\n";
+    std::cout << "NEW #" << siz++ << " " << link << "\n\n";
 
-    set<string> linksOfPage = extractLinks(content);
-    set<string>::iterator itr;
+    std::set<std::string> linksOfPage = extractLinks(content);
+    std::set<std::string>::iterator itr;
 
     for (itr = linksOfPage.begin(); itr != linksOfPage.end(); itr++) {
         myMutex.lock();
-        string str = reformat(*itr);
+        std::string str = reformat(*itr);
         if (str != "") q.push(str);
         myMutex.unlock();
     }
@@ -113,12 +113,12 @@ void process() {
         myMutex.lock();
                 
         if (q.empty()) {
-            cout << "########################EXIT THREAD#########################";
-            terminate();
+            std::cout << "########################EXIT THREAD#########################";
+            std::terminate();
             return;
         }
         
-        string link = q.front();
+        std::string link = q.front();
         q.pop();
         myMutex.unlock();
 
@@ -130,9 +130,9 @@ void process() {
 
 void run() {
     int numberOfThreads = 0;
-    cin >> numberOfThreads;
+    std::cin >> numberOfThreads;
     for (int i = 0; i < numberOfThreads; ++i) {
-        threads.push_back(thread(process));
+        threads.push_back(std::thread(process));
     }
 
     for (int i = 0; i < threads.size(); ++i) {
@@ -143,7 +143,9 @@ int main() {
     curlpp::Cleanup myCleanup;
 
     crawl("https://en.wikipedia.org/wiki/Main_Page");
-    run();
+    //run();
+
+    parseString("HI HOW ARE U");
 
     return 0;
 }

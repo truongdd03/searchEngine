@@ -2,19 +2,15 @@
 #include <stdio.h>
 #include <vector>
 #include <queue>
-#include <sstream>
-#include <regex>
 #include <thread>
 #include <mutex>
+#include <algorithm>
 
 #include "parser.h"
 
 #include <curlpp/cURLpp.hpp>
 #include <curlpp/Options.hpp>
 #include <curlpp/Easy.hpp>
-
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/xml_parser.hpp>
 
 const std::string src = "https://en.wikipedia.org/";
 std::vector <std::thread> threads;
@@ -28,51 +24,8 @@ std::string reformat(std::string link) {
     return link;
 }
 
-std::string extractContent(std::string link) {
-
-    try {
-        curlpp::Cleanup myCleanup;
-
-        {
-          std::ostringstream os;
-          os << curlpp::options::Url(link);
-          return os.str();
-        }
-
-    }
-    catch( curlpp::RuntimeError &e ) {
-        //cout << "LINK: " << link << " ERROR: " << e.what() << "\n\n";
-    }
-
-    catch( curlpp::LogicError &e ) {
-        //cout << "LINK: " << link << " ERROR: " << e.what() << "\n\n";
-    }
-
-    return "";
-}
-
-std::set<std::string> extractLinks(std::string str) {
-    static const std::regex hl_regex( "<a href=\"(.*?)\"", std::regex_constants::icase  ) ;
-
-    return { 
-        std::sregex_token_iterator( str.begin(), str.end(), hl_regex, 1 ),
-        std::sregex_token_iterator{} 
-    };
-}
-
-std::string extractTitle(std::string str) {
-    static const std::regex hl_regex( "<title>(.*?)</title>", std::regex_constants::icase  ) ;
-    std::smatch match;
-
-    if ( regex_search(str, match, hl_regex) ) {
-        return match[0];
-    } else {
-        return "ERROR";
-    }
-}
-
 bool isExisted(std::string content, std::string link) {
-    std::string title = extractTitle(content);
+    std::string title = parseTitle(content);
     
     if (titles.find(title) != titles.end()) return true; 
 
@@ -86,7 +39,7 @@ bool isExisted(std::string content, std::string link) {
 int siz = 1;
 
 void crawl(std::string link) {
-    std::string content = extractContent(link);
+    std::string content = parseContent(link);
 
     if (isExisted(content, link)) {
         //cout << "EXISTED " << link << "\n\n";
@@ -95,7 +48,7 @@ void crawl(std::string link) {
 
     std::cout << "NEW #" << siz++ << " " << link << "\n\n";
 
-    std::set<std::string> linksOfPage = extractLinks(content);
+    std::set<std::string> linksOfPage = parseLinks(content);
     std::set<std::string>::iterator itr;
 
     for (itr = linksOfPage.begin(); itr != linksOfPage.end(); itr++) {
@@ -131,7 +84,7 @@ void process() {
 void run() {
     int numberOfThreads = 0;
     std::cin >> numberOfThreads;
-    for (int i = 0; i < numberOfThreads; ++i) {
+    for (int i = 0; i < std::min(numberOfThreads, int(q.size())); ++i) {
         threads.push_back(std::thread(process));
     }
 
@@ -143,9 +96,7 @@ int main() {
     curlpp::Cleanup myCleanup;
 
     crawl("https://en.wikipedia.org/wiki/Main_Page");
-    //run();
-
-    parseString("HI HOW ARE U");
-
+    run();
+    
     return 0;
 }

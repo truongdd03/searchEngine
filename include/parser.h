@@ -3,7 +3,9 @@
 
 #include <set>
 
-std::vector<std::string> parseString(std::string str);
+extern std::set<std::string> dict;
+
+void parseString(std::string str);
 
 std::string parseTitle(std::string str);
 

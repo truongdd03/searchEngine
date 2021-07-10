@@ -5,6 +5,7 @@
 #include <thread>
 #include <mutex>
 #include <algorithm>
+#include <fstream>
 
 #include "parser.h"
 
@@ -28,7 +29,6 @@ bool isExisted(std::string content, std::string link) {
     std::string title = parseTitle(content);
     
     if (titles.find(title) != titles.end()) return true; 
-
     if (links.find(link) != links.end() || link == "") return true; 
 
     titles.insert(title);
@@ -42,11 +42,16 @@ void crawl(std::string link) {
     std::string content = parseContent(link);
 
     if (isExisted(content, link)) {
-        //cout << "EXISTED " << link << "\n\n";
+        //std::cout << "EXISTED " << link << "\n\n";
         return;
     }
 
+    myMutex.lock();
+    parseString(content);
+    std::cout << dict.size() << "\n";
     std::cout << "NEW #" << siz++ << " " << link << "\n\n";
+
+    myMutex.unlock();
 
     std::set<std::string> linksOfPage = parseLinks(content);
     std::set<std::string>::iterator itr;
@@ -63,8 +68,7 @@ void crawl(std::string link) {
 void process() {
     while (true) {
 
-        myMutex.lock();
-                
+        myMutex.lock();    
         if (q.empty()) {
             std::cout << "########################EXIT THREAD#########################";
             std::terminate();
@@ -76,8 +80,6 @@ void process() {
         myMutex.unlock();
 
         crawl(link);
-        //cout << "YEAh\n";
-
     }
 }
 

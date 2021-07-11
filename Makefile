@@ -6,7 +6,7 @@ SRC := src
 INCLUDE := include
 
 LIBRARIES := lib
-EXECUTABLE := crawler
+EXECUTABLE := main
 
 all: $(BIN)/$(EXECUTABLE)
 

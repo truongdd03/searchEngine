@@ -14,7 +14,7 @@
 #include <curlpp/Easy.hpp>
 
 const std::string src = "https://en.wikipedia.org/";
-std::vector <std::thread> threads;
+std::vector <std::thread> threads, parsingThreads;
 std::queue <std::string> q;
 std::mutex myMutex;
 std::set <std::string> links, titles;
@@ -47,6 +47,7 @@ void crawl(std::string link) {
     }
 
     myMutex.lock();
+    //threads.push_back(std::thread(parseString, content));
     parseString(content);
     std::cout << dict.size() << "\n";
     std::cout << "NEW #" << siz++ << " " << link << "\n\n";
@@ -69,9 +70,13 @@ void process() {
     while (true) {
 
         myMutex.lock();    
-        if (q.empty()) {
-            std::cout << "########################EXIT THREAD#########################";
-            std::terminate();
+        if (q.empty() || siz >= 10) {
+            
+            //for (int i = 0; i < parsingThreads.size(); ++i)
+                //parsingThreads[i].join();
+            
+            std::cout << "########################EXIT THREAD#########################\n";
+            myMutex.unlock();
             return;
         }
         
@@ -81,9 +86,14 @@ void process() {
 
         crawl(link);
     }
+
+    return;
 }
 
-void run() {
+void startCrawling() {
+    crawl("https://en.wikipedia.org/wiki/Main_Page");
+
+    //process();
     int numberOfThreads = 0;
     std::cin >> numberOfThreads;
     for (int i = 0; i < std::min(numberOfThreads, int(q.size())); ++i) {
@@ -93,12 +103,4 @@ void run() {
     for (int i = 0; i < threads.size(); ++i) {
         threads[i].join();
     }
-}
-int main() {
-    curlpp::Cleanup myCleanup;
-
-    crawl("https://en.wikipedia.org/wiki/Main_Page");
-    run();
-    
-    return 0;
 }

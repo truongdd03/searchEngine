@@ -8,6 +8,7 @@
 #include <fstream>
 
 #include "parser.h"
+#include "stemmer.h"
 
 #include <curlpp/cURLpp.hpp>
 #include <curlpp/Options.hpp>
@@ -50,44 +51,34 @@ std::string parseTitle(std::string str) {
     }
 }
 
-bool isLetter(char chr) {
-    if (chr >= 65 && chr <= 90) return true;
-    if (chr >= 97 && chr <= 122) return true;
-    return false;
+void trim(std::string &str) {
+    if (str.length() >= 1 && (str[0] < 'a' || str[0] > 'z') && (str[0] < 'A' || str[0] > 'Z')) 
+        str.erase(0, 1);
+
+    int n = str.length() - 1;
+    if (n >= 0 && (str[n] < 'a' || str[n] > 'z') && (str[n] < 'A' || str[n] > 'Z')) 
+        str.erase(n, 1);
 }
 
 void updateDict(std::string s, bool kt) {
     if (kt == false || s.length() == 1) return;
 
-    std::string ending = std::string() + s[s.length()-2] + s[s.length()-1];
-    if (ending == "er" || ending == "es" || ending == "ed") {
-        s.erase(s.length()-2, 2);
-    } else if (s[s.length()-1] == 's') {
-        s.erase(s.length()-1, 1);
-    } else if (s.length() >= 3) {
-        ending = s[s.length()-3] + ending;
-        if (ending == "ing") {
-            s.erase(s.length()-3, 3);
-        }
-    }
+    std::string str = stem(s);
 
-    if (dict.find(s) == dict.end() && s != "") {
-        dict.insert(s);
+    if (dict.find(str) == dict.end() && str != "") {
+        dict.insert(str);
     }
 }
 
-void trim(std::vector<std::string> &words) {
+void compress(std::vector<std::string> &words) {
     for (int i = 0; i < words.size(); ++i) {
         bool kt = true;
 
         if (words[i].length() >= 15) 
             kt = false;    
         else {
-            if (words[i] == "") continue;
-            if (!isLetter(words[i][0])) words[i].erase(0, 1);
-
-            if (words[i] == "") continue;
-            if (!isLetter(words[i][words[i].length()-1])) words[i].erase(words[i].length()-1, 1);
+            trim(words[i]);
+            if (words[i].length() <= 1) continue;
 
             for (int j = 0; j < words[i].length(); ++j) {
                 char chr = words[i][j];
@@ -95,6 +86,11 @@ void trim(std::vector<std::string> &words) {
                 if (chr >= 65 && chr <= 90) {
                     words[i][j] = int(chr) + 32;
                 } else if (chr < 97 || chr > 122) {
+                    kt = false;
+                    break;
+                }
+
+                if (j >= 2 && words[i][j] == words[i][j-1] && words[i][j] == words[i][j-2]) {
                     kt = false;
                     break;
                 }
@@ -118,5 +114,5 @@ void parseString(std::string str) {
         std::istringstream iss(*itr);
         std::copy(std::istream_iterator<std::string>(iss), std::istream_iterator<std::string>(), std::back_inserter(rres));
     }
-    trim(rres);
+    compress(rres);
 }

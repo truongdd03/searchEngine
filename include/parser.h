@@ -2,10 +2,9 @@
 #define PARSER_H
 
 #include <set>
+#include <vector>
 
-extern std::set<std::string> dict;
-
-void parseString(std::string str);
+void parseString(std::string str, int linkID);
 
 std::string parseTitle(std::string str);
 

@@ -1,25 +1,60 @@
 #include <iostream>
 #include <fstream>
 #include <iterator>
+#include <algorithm>
 
-#include <crawler.h>
-#include <parser.h>
+#include "crawler.h"
+#include "parser.h"
+#include "storeWords.h"
+#include "query.h"
 
 #include <curlpp/cURLpp.hpp>
 #include <curlpp/Options.hpp>
 #include <curlpp/Easy.hpp>
 
-int main() {
-    curlpp::Cleanup myCleanup;
+void resetFile(std::string name) {
+    std::ofstream file;
+    file.open(name);
+    file << "";
+    file.close();
+}
 
-    startCrawling();
+void prepare() {
+    int numberOfThreads = 0;
+    std::cout << "Number of threads: ";
+    std::cin >> numberOfThreads;
+    startCrawling(numberOfThreads);
 
     std::ofstream myFile;
-    myFile.open("words.txt", std::ios::app);
-    std::set<std::string>::iterator itr;
-    for (itr = dict.begin(); itr != dict.end(); ++itr)
-        myFile << *itr << "\n";
-    myFile.close();
+    myFile.open("positions.txt", std::ios::app);
+    for (int i = 0; i < wordPositions.size(); ++i) {
+        myFile << words[i] << "\n";
+        for (int j = 0; j < wordPositions[i].size(); ++j) {
+            myFile << wordPositions[i][j].pageID << " ";
+        }
+        myFile << "\n";
+    }
+
+    std::cout << "##### Finished #####\n";
+}
+
+int main() {
+    curlpp::Cleanup myCleanup;
     
+    std::cout << "Do you want to crawl again? (y/n) ";
+    char c; std::cin >> c;
+    if (c == 'y') {
+        resetFile("links.txt");
+        resetFile("positions.txt");
+        prepare();
+    }
+
+    prepareQuery();
+    while (true) {
+        std::cout << "What are you searching? ";
+        std::string goal; std::cin >> goal;
+        query(goal);
+    }
+
     return 0;
 }

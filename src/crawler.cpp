@@ -8,6 +8,7 @@
 #include <fstream>
 
 #include "parser.h"
+#include "crawler.h"
 
 #include <curlpp/cURLpp.hpp>
 #include <curlpp/Options.hpp>
@@ -18,6 +19,8 @@ std::vector <std::thread> threads, parsingThreads;
 std::queue <std::string> q;
 std::mutex myMutex;
 std::set <std::string> links, titles;
+std::ofstream linksFile;
+
 
 std::string reformat(std::string link) {
     if (link[0] == '/') return src + link;
@@ -47,10 +50,10 @@ void crawl(std::string link) {
     }
 
     myMutex.lock();
-    //threads.push_back(std::thread(parseString, content));
-    parseString(content);
-    std::cout << dict.size() << "\n";
-    std::cout << "NEW #" << siz++ << " " << link << "\n\n";
+    threads.push_back(std::thread(parseString, content, siz));
+    
+    std::cout << "#" << siz << "\n";
+    linksFile << siz++ << "\n" << link << "\n";
 
     myMutex.unlock();
 
@@ -70,12 +73,7 @@ void process() {
     while (true) {
 
         myMutex.lock();    
-        if (q.empty() || siz >= 10) {
-            
-            //for (int i = 0; i < parsingThreads.size(); ++i)
-                //parsingThreads[i].join();
-            
-            std::cout << "########################EXIT THREAD#########################\n";
+        if (q.empty() || siz > 10000) {
             myMutex.unlock();
             return;
         }
@@ -90,12 +88,11 @@ void process() {
     return;
 }
 
-void startCrawling() {
+void startCrawling(int numberOfThreads) {
+    linksFile.open("links.txt", std::ios::app);
+
     crawl("https://en.wikipedia.org/wiki/Main_Page");
 
-    //process();
-    int numberOfThreads = 0;
-    std::cin >> numberOfThreads;
     for (int i = 0; i < std::min(numberOfThreads, int(q.size())); ++i) {
         threads.push_back(std::thread(process));
     }
@@ -103,4 +100,5 @@ void startCrawling() {
     for (int i = 0; i < threads.size(); ++i) {
         threads[i].join();
     }
+
 }

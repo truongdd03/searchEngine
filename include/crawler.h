@@ -1,6 +1,6 @@
 #ifndef CRAWLER_H
 #define CRAWLER_H
 
-void startCrawling();
+void startCrawling(int numberOfThreads);
 
 #endif

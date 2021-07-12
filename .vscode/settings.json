@@ -87,6 +87,7 @@
         "unordered_set": "cpp",
         "utility": "cpp",
         "variant": "cpp",
-        "*.ipp": "cpp"
+        "*.ipp": "cpp",
+        "clocale": "cpp"
     }
 }

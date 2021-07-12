@@ -6,15 +6,17 @@
 #include <set>
 #include <iterator>
 #include <fstream>
+#include <mutex>
 
 #include "parser.h"
 #include "stemmer.h"
+#include "storeWords.h"
 
 #include <curlpp/cURLpp.hpp>
 #include <curlpp/Options.hpp>
 #include <curlpp/Easy.hpp>
 
-std::set<std::string> dict;
+int trashSize = 16;
 
 std::string parseContent(std::string link) {
     try {
@@ -60,17 +62,20 @@ void trim(std::string &str) {
         str.erase(n, 1);
 }
 
-void updateDict(std::string s, bool kt) {
-    if (kt == false || s.length() == 1) return;
+void validateWord(std::string s, int linkID) {
+    if (s.length() == 1) return;
 
     std::string str = stem(s);
 
-    if (dict.find(str) == dict.end() && str != "") {
-        dict.insert(str);
+    for (int i = 0; i < str.length(); ++i) {
+        if (str[i] < 'a' || str[i] > 'z') return;
     }
+    if (str == "") return;
+
+    updateDict(str, linkID);
 }
 
-void compress(std::vector<std::string> &words) {
+void compress(std::vector<std::string> &words, int linkID) {
     for (int i = 0; i < words.size(); ++i) {
         bool kt = true;
 
@@ -97,11 +102,11 @@ void compress(std::vector<std::string> &words) {
             }
         }
 
-        updateDict(words[i], kt);
+        if (kt) validateWord(words[i], linkID);
     }
 }
 
-void parseString(std::string str) {
+void parseString(std::string str, int linkID) {
     static const std::regex hl_regex( ">(.*?)<", std::regex_constants::icase );
     std::set<std::string> res = { 
         std::sregex_token_iterator( str.begin(), str.end(), hl_regex, 1 ),
@@ -114,5 +119,5 @@ void parseString(std::string str) {
         std::istringstream iss(*itr);
         std::copy(std::istream_iterator<std::string>(iss), std::istream_iterator<std::string>(), std::back_inserter(rres));
     }
-    compress(rres);
+    compress(rres, linkID);
 }

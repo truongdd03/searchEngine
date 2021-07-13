@@ -60,7 +60,7 @@ void process() {
     while (true) {
 
         myMutex.lock();    
-        if (q.empty() || listOfLinks.size() > 10000) {
+        if (q.empty() || listOfLinks.size() > 15000) {
             myMutex.unlock();
             return;
         }

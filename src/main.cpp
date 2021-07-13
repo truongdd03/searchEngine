@@ -38,10 +38,23 @@ void prepare() {
             myFile << wordPositions[i][j].pageID << " ";
         }
         myFile << "\n";
+        for (int j = 0; j < wordPositions[i].size(); ++j) {
+            myFile << wordPositions[i][j].value << " ";
+        }
+        myFile << "\n";
     }
     myFile.close();
 
     std::cout << "##### Finished #####\n";
+}
+
+void readQuery() {
+    std::string goal; std::getline(std::cin, goal);
+    while (true) {
+        std::cout << "What are you searching? ";
+        std::string goal; std::getline(std::cin, goal);
+        query(goal);
+    }
 }
 
 int main() {
@@ -56,11 +69,7 @@ int main() {
     }
 
     prepareQuery();
-    while (true) {
-        std::cout << "What are you searching? ";
-        std::string goal; std::getline(std::cin, goal);
-        query(goal);
-    }
+    readQuery();
 
     return 0;
 }

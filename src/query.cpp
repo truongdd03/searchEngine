@@ -5,23 +5,16 @@
 #include <fstream>
 #include <string>
 #include <queue>
+#include <algorithm>
 
 #include "storeWords.h"
 #include "query.h"
 #include "parser.h"
 
-struct result {
-    int linkID, point;
-};
-struct cmp {
-    bool operator () (const result& a, const result& b) {
-        return a.point < b.point;
-    }
-};
-
-std::vector<std::string> pageLinks;
-std::vector<std::string> wordsToFind;
-std::priority_queue<result,std::vector<result>,cmp > pq;
+std::vector<std::string> pageLinks, wordsToFind;
+std::vector<PageInfo> finalResults;
+std::set<PageInfo> results;
+int wordsAppeared = 0;
 
 void buildLinks() {
     std::string n;
@@ -36,6 +29,13 @@ void buildLinks() {
 
 void prepareQuery() {    
     buildLinks();
+}
+
+void resetQuery() {
+    wordsAppeared = 0;
+    wordsToFind.clear();
+    finalResults.clear();
+    results.clear();
 }
 
 std::vector<int> fetchArray(std::string s) {
@@ -55,28 +55,69 @@ std::vector<int> fetchArray(std::string s) {
     return res;
 }
 
-void query(std::string goal) {
-    wordsToFind.clear();
-    wordsToFind = splitWords(goal);
+void merge(std::vector<int> &ids, std::vector<int> &values) {
+    for (int i = 0; i < ids.size(); ++i) {
+        std::set<PageInfo>::iterator itr = results.find({ids[i], 0});
+        int cur = values[i];
+        if (itr != results.end()) {
+            cur += itr->value;
+            results.erase(itr);
+        }
 
-    for (int i = 0; i < wordsToFind.size(); ++i) {
-        std::cout << wordsToFind[i] << " ";
+        results.insert({ids[i], cur});
     }
-    std::cout << "\n";
+}
+
+void compare(std::string word, std::string idsString, std::string valuesString) {
+    for (int i = 0; i < wordsToFind.size(); ++i) {
+        if (word == wordsToFind[i]) {
+            std::vector<int> ids = fetchArray(idsString);
+            std::vector<int> values = fetchArray(valuesString);
+            merge(ids, values);
+            ++wordsAppeared;
+        }
+    }
+}
+
+bool cmp1(PageInfo a, PageInfo b) {
+    return a.value > b.value;
+}
+
+void printResult() {
+    std::set<PageInfo>::iterator itr = results.begin();
+    int cnt = 1;
+
+    finalResults.clear();
+    while (cnt <= 10 && itr != results.end()) {
+        finalResults.push_back({itr->pageID, itr->value});
+        cnt++;
+        ++itr;
+    }
+
+    sort(finalResults.begin(), finalResults.end(), cmp1);
+    for (int i = 0; i < finalResults.size(); ++i) {
+        std::cout << "#" << i+1 << "\n" << pageLinks[finalResults[i].pageID] << "\n";
+    }
+}
+
+void query(std::string goal) {
+    resetQuery();
+    wordsToFind = splitWords(goal);
 
     std::ifstream file("positions.txt");
     std::string word;
     while (std::getline(file, word)) {
-        std::string s;
-        std::getline(file, s);
+        std::string idsString, valuesString;
+        std::getline(file, idsString);
+        std::getline(file, valuesString);
 
-        if (word == goal) {
-            std::vector<int> tmp = fetchArray(s);
-            for (int i = 0; i < tmp.size(); ++i) {
-                std::cout << "#" << i+1 << " " << pageLinks[tmp[i]] << "\n";
-            }
+        compare(word, idsString, valuesString);
 
+        if (wordsAppeared == wordsToFind.size()) {
+            printResult();
             return;
         }
     }
+
+    printResult();
 }

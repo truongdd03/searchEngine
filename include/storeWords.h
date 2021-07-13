@@ -24,7 +24,7 @@ struct Word {
 struct PageInfo {
     int pageID, value;
 
-   /* bool operator< (const PageInfo& a) const {
+    bool operator< (const PageInfo& a) const {
         return pageID < a.pageID;
     }
 
@@ -34,7 +34,7 @@ struct PageInfo {
 
     bool operator!= (const PageInfo& a) const {
         return pageID != a.pageID;
-    }*/
+    }
 };
 
 extern int numberOfWords;

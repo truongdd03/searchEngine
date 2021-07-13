@@ -41,16 +41,6 @@ void prepare() {
     }
     myFile.close();
 
-    resetFile("value.txt");
-    myFile.open("value.txt", std::ios::app);
-    for (int i = 0; i < wordPositions.size(); ++i) {
-        myFile << words[i] << "\n";
-        for (int j = 0; j < wordPositions[i].size(); ++j) {
-            myFile << wordPositions[i][j].value << " ";
-        }
-        myFile << "\n";
-    }
-
     std::cout << "##### Finished #####\n";
 }
 

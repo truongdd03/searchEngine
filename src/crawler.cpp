@@ -15,11 +15,12 @@
 #include <curlpp/Easy.hpp>
 
 const std::string src = "https://en.wikipedia.org/";
-std::vector <std::thread> threads, parsingThreads;
-std::queue <std::string> q;
+std::vector<std::thread> threads;
+std::queue<std::string> q;
 std::mutex myMutex;
-std::set <std::string> links, titles;
+std::set<std::string> links, titles;
 std::ofstream linksFile;
+std::vector<std::string> listOfLinks;
 
 
 std::string reformat(std::string link) {
@@ -31,15 +32,15 @@ std::string reformat(std::string link) {
 bool isExisted(std::string content, std::string link) {
     std::string title = parseTitle(content);
     
-    if (titles.find(title) != titles.end()) return true; 
-    if (links.find(link) != links.end() || link == "") return true; 
+    myMutex.lock();
+    if (titles.find(title) != titles.end()) { myMutex.unlock(); return true; }
+    if (links.find(link) != links.end() || link == "") { myMutex.unlock(); return true; }
 
     titles.insert(title);
     links.insert(link);
+    myMutex.unlock();
     return false;
 }
-
-int siz = 1;
 
 void crawl(std::string link) {
     std::string content = parseContent(link);
@@ -50,10 +51,10 @@ void crawl(std::string link) {
     }
 
     myMutex.lock();
-    threads.push_back(std::thread(parseString, content, siz));
+    listOfLinks.push_back(link);
+    threads.push_back(std::thread(parseString, content, listOfLinks.size()));
     
-    std::cout << "#" << siz << "\n";
-    linksFile << siz++ << "\n" << link << "\n";
+    std::cout << "#" << listOfLinks.size() << "\n";
 
     myMutex.unlock();
 
@@ -73,7 +74,7 @@ void process() {
     while (true) {
 
         myMutex.lock();    
-        if (q.empty() || siz > 1000) {
+        if (q.empty() || listOfLinks.size() > 1000) {
             myMutex.unlock();
             return;
         }
@@ -89,8 +90,6 @@ void process() {
 }
 
 void startCrawling(int numberOfThreads) {
-    linksFile.open("links.txt", std::ios::app);
-
     crawl("https://en.wikipedia.org/wiki/Main_Page");
 
     for (int i = 0; i < std::min(numberOfThreads, int(q.size())); ++i) {
@@ -100,5 +99,11 @@ void startCrawling(int numberOfThreads) {
     for (int i = 0; i < threads.size(); ++i) {
         threads[i].join();
     }
+
+    linksFile.open("links.txt", std::ios::app);
+    for (int i = 0; i < listOfLinks.size(); ++i) {
+        linksFile << i+1 << "\n" << listOfLinks[i] << "\n";
+    }
+    linksFile.close();
 
 }

@@ -91,6 +91,18 @@ void simplifyWord(std::string &str, int linkID, bool willStore) {
     if (willStore) validateWord(str, linkID);
 }
 
+std::vector<std::string> splitWords(std::string str) {
+    std::vector<std::string> res;
+    std::istringstream iss(str);
+    std::copy(std::istream_iterator<std::string>(iss), std::istream_iterator<std::string>(), std::back_inserter(res));
+
+    for (int i = 0; i < res.size(); ++i) {
+        simplifyWord(res[i], 0, false);
+    }
+
+    return res;
+}
+
 void parseString(std::string str, int linkID) {
     static const std::regex hl_regex( ">(.*?)<", std::regex_constants::icase );
     std::set<std::string> res = { 

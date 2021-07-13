@@ -58,7 +58,7 @@ int main() {
     prepareQuery();
     while (true) {
         std::cout << "What are you searching? ";
-        std::string goal; std::cin >> goal;
+        std::string goal; std::getline(std::cin, goal);
         query(goal);
     }
 

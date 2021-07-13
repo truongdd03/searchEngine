@@ -4,12 +4,24 @@
 #include <vector>
 #include <fstream>
 #include <string>
+#include <queue>
 
 #include "storeWords.h"
 #include "query.h"
 #include "parser.h"
 
+struct result {
+    int linkID, point;
+};
+struct cmp {
+    bool operator () (const result& a, const result& b) {
+        return a.point < b.point;
+    }
+};
+
 std::vector<std::string> pageLinks;
+std::vector<std::string> wordsToFind;
+std::priority_queue<result,std::vector<result>,cmp > pq;
 
 void buildLinks() {
     std::string n;
@@ -44,11 +56,16 @@ std::vector<int> fetchArray(std::string s) {
 }
 
 void query(std::string goal) {
-    std::string word;
-    simplifyWord(goal, 0, false);
-    std::cout << goal << "\n";
+    wordsToFind.clear();
+    wordsToFind = splitWords(goal);
+
+    for (int i = 0; i < wordsToFind.size(); ++i) {
+        std::cout << wordsToFind[i] << " ";
+    }
+    std::cout << "\n";
 
     std::ifstream file("positions.txt");
+    std::string word;
     while (std::getline(file, word)) {
         std::string s;
         std::getline(file, s);

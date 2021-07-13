@@ -9,6 +9,7 @@
 
 #include "parser.h"
 #include "crawler.h"
+#include "bloomFilter.h"
 
 #include <curlpp/cURLpp.hpp>
 #include <curlpp/Options.hpp>
@@ -17,10 +18,9 @@
 const std::string src = "https://en.wikipedia.org/";
 std::vector<std::thread> threads;
 std::queue<std::string> q;
-std::mutex myMutex;
-std::set<std::string> links, titles;
 std::ofstream linksFile;
 std::vector<std::string> listOfLinks;
+std::mutex myMutex;
 
 
 std::string reformat(std::string link) {
@@ -29,23 +29,10 @@ std::string reformat(std::string link) {
     return link;
 }
 
-bool isExisted(std::string content, std::string link) {
-    std::string title = parseTitle(content);
-    
-    myMutex.lock();
-    if (titles.find(title) != titles.end()) { myMutex.unlock(); return true; }
-    if (links.find(link) != links.end() || link == "") { myMutex.unlock(); return true; }
-
-    titles.insert(title);
-    links.insert(link);
-    myMutex.unlock();
-    return false;
-}
-
 void crawl(std::string link) {
     std::string content = parseContent(link);
 
-    if (isExisted(content, link)) {
+    if (isExisted(content)) {
         //std::cout << "EXISTED " << link << "\n\n";
         return;
     }
@@ -55,7 +42,6 @@ void crawl(std::string link) {
     threads.push_back(std::thread(parseString, content, listOfLinks.size()));
     
     std::cout << "#" << listOfLinks.size() << "\n";
-
     myMutex.unlock();
 
     std::set<std::string> linksOfPage = parseLinks(content);
@@ -74,7 +60,7 @@ void process() {
     while (true) {
 
         myMutex.lock();    
-        if (q.empty() || listOfLinks.size() > 1000) {
+        if (q.empty() || listOfLinks.size() > 10000) {
             myMutex.unlock();
             return;
         }
@@ -105,5 +91,4 @@ void startCrawling(int numberOfThreads) {
         linksFile << i+1 << "\n" << listOfLinks[i] << "\n";
     }
     linksFile.close();
-
 }

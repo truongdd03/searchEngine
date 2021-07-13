@@ -16,8 +16,6 @@
 #include <curlpp/Options.hpp>
 #include <curlpp/Easy.hpp>
 
-int trashSize = 16;
-
 std::string parseContent(std::string link) {
     try {
         curlpp::Cleanup myCleanup;

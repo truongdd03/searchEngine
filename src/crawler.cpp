@@ -73,7 +73,7 @@ void process() {
     while (true) {
 
         myMutex.lock();    
-        if (q.empty() || siz > 10000) {
+        if (q.empty() || siz > 1000) {
             myMutex.unlock();
             return;
         }

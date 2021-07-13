@@ -12,4 +12,6 @@ std::set<std::string> parseLinks(std::string str);
 
 std::string parseContent(std::string link);
 
+void simplifyWord(std::string &str, int linkID, bool willStore);
+
 #endif

@@ -60,10 +60,8 @@ void trim(std::string &str) {
         str.erase(n, 1);
 }
 
-void validateWord(std::string s, int linkID) {
-    if (s.length() == 1) return;
-
-    std::string str = stem(s);
+void validateWord(std::string str, int linkID) {
+    if (str.length() == 1) return;
 
     for (int i = 0; i < str.length(); ++i) {
         if (str[i] < 'a' || str[i] > 'z') return;
@@ -73,35 +71,24 @@ void validateWord(std::string s, int linkID) {
     updateDict(str, linkID);
 }
 
-void compress(std::vector<std::string> &words, int linkID) {
-    for (int i = 0; i < words.size(); ++i) {
-        bool kt = true;
+void simplifyWord(std::string &str, int linkID, bool willStore) {
+    trim(str);
+    if (str.length() <= 1 || str.length() >= 15) return;
 
-        if (words[i].length() >= 15) 
-            kt = false;    
-        else {
-            trim(words[i]);
-            if (words[i].length() <= 1) continue;
-
-            for (int j = 0; j < words[i].length(); ++j) {
-                char chr = words[i][j];
-
-                if (chr >= 65 && chr <= 90) {
-                    words[i][j] = int(chr) + 32;
-                } else if (chr < 97 || chr > 122) {
-                    kt = false;
-                    break;
-                }
-
-                if (j >= 2 && words[i][j] == words[i][j-1] && words[i][j] == words[i][j-2]) {
-                    kt = false;
-                    break;
-                }
-            }
+    for (int j = 0; j < str.length(); ++j) {
+        if (str[j] >= 65 && str[j] <= 90) {
+            str[j] = int(str[j]) + 32;
+        } else if (str[j] < 97 || str[j] > 122) {
+            return;
         }
 
-        if (kt) validateWord(words[i], linkID);
+        if (j >= 2 && str[j] == str[j-1] && str[j] == str[j-2]) {
+            return;
+        }
     }
+
+    str = stem(str);
+    if (willStore) validateWord(str, linkID);
 }
 
 void parseString(std::string str, int linkID) {
@@ -117,5 +104,8 @@ void parseString(std::string str, int linkID) {
         std::istringstream iss(*itr);
         std::copy(std::istream_iterator<std::string>(iss), std::istream_iterator<std::string>(), std::back_inserter(rres));
     }
-    compress(rres, linkID);
+    
+    for (int i = 0; i < rres.size(); ++i) {
+        simplifyWord(rres[i], linkID, true);
+    }
 }

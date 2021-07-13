@@ -6,8 +6,8 @@
 #include <string>
 
 #include "storeWords.h"
-#include "stemmer.h"
 #include "query.h"
+#include "parser.h"
 
 std::vector<std::string> pageLinks;
 
@@ -45,7 +45,8 @@ std::vector<int> fetchArray(std::string s) {
 
 void query(std::string goal) {
     std::string word;
-    goal = stem(goal);
+    simplifyWord(goal, 0, false);
+    std::cout << goal << "\n";
 
     std::ifstream file("positions.txt");
     while (std::getline(file, word)) {

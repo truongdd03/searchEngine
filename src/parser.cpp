@@ -60,18 +60,21 @@ void trim(std::string &str) {
         str.erase(n, 1);
 }
 
-void validateWord(std::string str, int linkID) {
-    if (str.length() == 1) return;
-
-    for (int i = 0; i < str.length(); ++i) {
-        if (str[i] < 'a' || str[i] > 'z') return;
+void prepareToUpdateDict(std::vector<std::string> &vt, int linkID) {
+    sort(vt.begin(), vt.end());
+    vt.push_back("~_~");
+    int cur = 1;
+    for (int i = 1; i < vt.size(); ++i) {
+        if (vt[i] != vt[i-1]) {
+            updateDict(vt[i-1], linkID, cur);
+            cur = 1;
+        } else {
+            ++cur;
+        }
     }
-    if (str == "") return;
-
-    updateDict(str, linkID);
 }
 
-void simplifyWord(std::string &str, int linkID, bool willStore) {
+void simplifyWord(std::string &str) {
     trim(str);
     if (str.length() <= 1 || str.length() >= 15) return;
 
@@ -88,7 +91,7 @@ void simplifyWord(std::string &str, int linkID, bool willStore) {
     }
 
     str = stem(str);
-    if (willStore) validateWord(str, linkID);
+    //if (willStore) validateWord(str, linkID);
 }
 
 std::vector<std::string> splitWords(std::string str) {
@@ -97,7 +100,7 @@ std::vector<std::string> splitWords(std::string str) {
     std::copy(std::istream_iterator<std::string>(iss), std::istream_iterator<std::string>(), std::back_inserter(res));
 
     for (int i = 0; i < res.size(); ++i) {
-        simplifyWord(res[i], 0, false);
+        simplifyWord(res[i]);
     }
 
     return res;
@@ -118,6 +121,9 @@ void parseString(std::string str, int linkID) {
     }
     
     for (int i = 0; i < rres.size(); ++i) {
-        simplifyWord(rres[i], linkID, true);
+        simplifyWord(rres[i]);
     }
+
+    prepareToUpdateDict(rres, linkID);
+
 }

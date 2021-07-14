@@ -5,10 +5,7 @@
 #include <fstream>
 #include <string>
 #include <queue>
-<<<<<<< HEAD
 #include <algorithm>
-=======
->>>>>>> 4a3bcef2840cde146fca0e949c0c0cc995f38985
 
 #include "storeWords.h"
 #include "query.h"

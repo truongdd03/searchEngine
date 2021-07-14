@@ -14,7 +14,6 @@
 std::vector<std::string> pageLinks, wordsToFind;
 std::vector<PageInfo> finalResults;
 std::set<PageInfo> results;
-int wordsAppeared = 0;
 
 void buildLinks() {
     std::string n;
@@ -32,7 +31,6 @@ void prepareQuery() {
 }
 
 void resetQuery() {
-    wordsAppeared = 0;
     wordsToFind.clear();
     finalResults.clear();
     results.clear();
@@ -74,7 +72,6 @@ void compare(std::string word, std::string idsString, std::string valuesString) 
             std::vector<int> ids = fetchArray(idsString);
             std::vector<int> values = fetchArray(valuesString);
             merge(ids, values);
-            ++wordsAppeared;
         }
     }
 }
@@ -112,11 +109,6 @@ void query(std::string goal) {
         std::getline(file, valuesString);
 
         compare(word, idsString, valuesString);
-
-        if (wordsAppeared == wordsToFind.size()) {
-            printResult();
-            return;
-        }
     }
 
     printResult();

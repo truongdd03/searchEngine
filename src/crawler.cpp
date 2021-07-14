@@ -18,7 +18,6 @@
 const std::string src = "https://en.wikipedia.org/";
 std::vector<std::thread> threads;
 std::queue<std::string> q;
-std::ofstream linksFile;
 std::vector<std::string> listOfLinks;
 std::mutex myMutex;
 
@@ -86,6 +85,7 @@ void startCrawling(int numberOfThreads, int numberOfLinks) {
         threads[i].join();
     }
 
+    std::ofstream linksFile;
     linksFile.open("links.txt", std::ios::app);
     for (int i = 0; i < listOfLinks.size(); ++i) {
         linksFile << i+1 << "\n" << listOfLinks[i] << "\n";

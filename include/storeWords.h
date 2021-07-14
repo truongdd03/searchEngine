@@ -37,6 +37,8 @@ struct PageInfo {
     }
 };
 
+void buildStopWords();
+
 extern int numberOfWords;
 
 extern std::vector<std::string> words;
@@ -45,5 +47,5 @@ extern std::vector<std::set<PageInfo>> wordPositions;
 
 extern std::set<Word> dict;
 
-void updateDict(std::string s, int linkID);
+void updateDict(std::string s, int linkID, int value);
 #endif

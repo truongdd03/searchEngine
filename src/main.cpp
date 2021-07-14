@@ -25,6 +25,14 @@ bool cmp(PageInfo a, PageInfo b) {
     return a.value > b.value;
 }
 
+void buildVT(int i) {
+    vt.clear();
+    std::set<PageInfo>::iterator itr;
+    for (itr = wordPositions[i].begin(); itr != wordPositions[i].end(); ++itr)
+        vt.push_back({itr->pageID, itr->value});
+    sort(vt.begin(), vt.end(), cmp);
+}
+
 void prepare() {
     int numberOfThreads = 0, numberOfLinks = 0;
     std::cout << "Number of threads: "; std::cin >> numberOfThreads;
@@ -35,20 +43,8 @@ void prepare() {
     myFile.open("positions.txt", std::ios::app);
     for (int i = 0; i < wordPositions.size(); ++i) {
         myFile << words[i] << "\n";
-        /*sort(wordPositions[i].begin(), wordPositions[i].end(), cmp);
-        for (int j = 0; j < wordPositions[i].size(); ++j) {
-            myFile << wordPositions[i][j].pageID << " ";
-        }
-        myFile << "\n";
-        for (int j = 0; j < wordPositions[i].size(); ++j) {
-            myFile << wordPositions[i][j].value << " ";
-        }*/
+        buildVT(i);
 
-        vt.clear();
-        std::set<PageInfo>::iterator itr;
-        for (itr = wordPositions[i].begin(); itr != wordPositions[i].end(); ++itr)
-            vt.push_back({itr->pageID, itr->value});
-        sort(vt.begin(), vt.end(), cmp);
         for (int j = 0; j < vt.size(); ++j)
             myFile << vt[j].pageID << " ";
         myFile << "\n";
@@ -73,7 +69,8 @@ void readQuery() {
 
 int main() {
     curlpp::Cleanup myCleanup;
-    
+    buildStopWords();
+
     std::cout << "Do you want to crawl again? (y/n) ";
     char c; std::cin >> c;
     if (c == 'y') {

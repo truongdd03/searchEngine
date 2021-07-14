@@ -82,7 +82,7 @@ void merge(std::vector<int> &ids, std::vector<int> &values) {
     }
 }
 
-void compare(std::string &word, std::string &idsString, std::string &valuesString) {
+void compare(std::string word, std::string idsString, std::string valuesString) {
     for (int i = 0; i < wordsToFind.size(); ++i) {
         if (word == wordsToFind[i]) {
             std::vector<int> ids = fetchArray(idsString);
@@ -122,6 +122,5 @@ void query(std::string goal) {
 
         compare(word, idsString, valuesString);
     }
-
     printResult();
 }

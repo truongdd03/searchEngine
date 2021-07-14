@@ -23,11 +23,25 @@ struct Word {
 
 struct PageInfo {
     int pageID, value;
+
+    bool operator< (const PageInfo& a) const {
+        return pageID < a.pageID;
+    }
+
+    bool operator== (const PageInfo& a) const {
+        return pageID == a.pageID;
+    }
+
+    bool operator!= (const PageInfo& a) const {
+        return pageID != a.pageID;
+    }
 };
 
 extern int numberOfWords;
+
 extern std::vector<std::string> words;
-extern std::vector<std::vector<PageInfo>> wordPositions;
+
+extern std::vector<std::set<PageInfo>> wordPositions;
 
 extern std::set<Word> dict;
 

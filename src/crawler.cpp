@@ -56,11 +56,11 @@ void crawl(std::string link) {
 
 }
 
-void process() {
+void process(int numberOfLinks) {
     while (true) {
 
         myMutex.lock();    
-        if (q.empty() || listOfLinks.size() > 15000) {
+        if (q.empty() || listOfLinks.size() > numberOfLinks) {
             myMutex.unlock();
             return;
         }
@@ -75,11 +75,11 @@ void process() {
     return;
 }
 
-void startCrawling(int numberOfThreads) {
+void startCrawling(int numberOfThreads, int numberOfLinks) {
     crawl("https://en.wikipedia.org/wiki/Main_Page");
 
     for (int i = 0; i < std::min(numberOfThreads, int(q.size())); ++i) {
-        threads.push_back(std::thread(process));
+        threads.push_back(std::thread(process, numberOfLinks));
     }
 
     for (int i = 0; i < threads.size(); ++i) {

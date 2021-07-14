@@ -59,7 +59,6 @@ std::vector<int> fetchArray(std::string s) {
         if (s[i] < '0' || s[i] > '9') {
             res.push_back(cur);
             cur = 0;
-            if (res.size() == 10) return res;
         }
         else {
             cur = cur * 10 + (s[i] - '0');
@@ -104,7 +103,7 @@ void printResult() {
     }
 
     sort(finalResults.begin(), finalResults.end(), cmp1);
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < std::min(10, int(finalResults.size())); ++i) {
         std::cout << finalResults[i].pageID << " " << finalResults[i].value << " " << finalResults[i].wordsAppeared << "\n";
         std::cout << "#" << i+1 << "\n" << pageLinks[finalResults[i].pageID] << "\n";
     }

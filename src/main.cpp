@@ -12,6 +12,8 @@
 #include <curlpp/Options.hpp>
 #include <curlpp/Easy.hpp>
 
+std::vector<PageInfo> vt;
+
 void resetFile(std::string name) {
     std::ofstream file;
     file.open(name);
@@ -24,23 +26,35 @@ bool cmp(PageInfo a, PageInfo b) {
 }
 
 void prepare() {
-    int numberOfThreads = 0;
-    std::cout << "Number of threads: ";
-    std::cin >> numberOfThreads;
-    startCrawling(numberOfThreads);
+    int numberOfThreads = 0, numberOfLinks = 0;
+    std::cout << "Number of threads: "; std::cin >> numberOfThreads;
+    std::cout << "Number of links: "; std::cin >> numberOfLinks;
+    startCrawling(numberOfThreads, numberOfLinks);
 
     std::ofstream myFile;
     myFile.open("positions.txt", std::ios::app);
     for (int i = 0; i < wordPositions.size(); ++i) {
         myFile << words[i] << "\n";
-        sort(wordPositions[i].begin(), wordPositions[i].end(), cmp);
+        /*sort(wordPositions[i].begin(), wordPositions[i].end(), cmp);
         for (int j = 0; j < wordPositions[i].size(); ++j) {
             myFile << wordPositions[i][j].pageID << " ";
         }
         myFile << "\n";
         for (int j = 0; j < wordPositions[i].size(); ++j) {
             myFile << wordPositions[i][j].value << " ";
-        }
+        }*/
+
+        vt.clear();
+        std::set<PageInfo>::iterator itr;
+        for (itr = wordPositions[i].begin(); itr != wordPositions[i].end(); ++itr)
+            vt.push_back({itr->pageID, itr->value});
+        sort(vt.begin(), vt.end(), cmp);
+        for (int j = 0; j < vt.size(); ++j)
+            myFile << vt[j].pageID << " ";
+        myFile << "\n";
+        for (int j = 0; j < vt.size(); ++j)
+            myFile << vt[j].value << " ";
+
         myFile << "\n";
     }
     myFile.close();

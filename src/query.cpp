@@ -11,9 +11,25 @@
 #include "query.h"
 #include "parser.h"
 
+struct searchResult {
+    int pageID, value, wordsAppeared;
+
+    bool operator< (const searchResult& a) const {
+        return pageID < a.pageID;
+    }
+
+    bool operator== (const searchResult& a) const {
+        return pageID == a.pageID;
+    }
+
+    bool operator!= (const searchResult& a) const {
+        return pageID != a.pageID;
+    }
+};
+
 std::vector<std::string> pageLinks, wordsToFind;
-std::vector<PageInfo> finalResults;
-std::set<PageInfo> results;
+std::vector<searchResult> finalResults;
+std::set<searchResult> results;
 
 void buildLinks() {
     std::string n;
@@ -55,18 +71,19 @@ std::vector<int> fetchArray(std::string s) {
 
 void merge(std::vector<int> &ids, std::vector<int> &values) {
     for (int i = 0; i < ids.size(); ++i) {
-        std::set<PageInfo>::iterator itr = results.find({ids[i], 0});
-        int cur = values[i];
+        std::set<searchResult>::iterator itr = results.find({ids[i], 0, 0});
+        int cur = values[i], tmp = 1;
         if (itr != results.end()) {
             cur += itr->value;
+            tmp += itr->wordsAppeared;
             results.erase(itr);
         }
 
-        results.insert({ids[i], cur});
+        results.insert({ids[i], cur, tmp});
     }
 }
 
-void compare(std::string word, std::string idsString, std::string valuesString) {
+void compare(std::string &word, std::string &idsString, std::string &valuesString) {
     for (int i = 0; i < wordsToFind.size(); ++i) {
         if (word == wordsToFind[i]) {
             std::vector<int> ids = fetchArray(idsString);
@@ -76,23 +93,19 @@ void compare(std::string word, std::string idsString, std::string valuesString) 
     }
 }
 
-bool cmp1(PageInfo a, PageInfo b) {
-    return a.value > b.value;
+bool cmp1(searchResult a, searchResult b) {
+    return a.wordsAppeared > b.wordsAppeared || (a.wordsAppeared == b.wordsAppeared && a.value > b.value);
 }
 
 void printResult() {
-    std::set<PageInfo>::iterator itr = results.begin();
-    int cnt = 1;
-
-    finalResults.clear();
-    while (cnt <= 10 && itr != results.end()) {
-        finalResults.push_back({itr->pageID, itr->value});
-        cnt++;
-        ++itr;
+    std::set<searchResult>::iterator itr = results.begin();
+    for (itr = results.begin(); itr != results.end(); ++itr) {
+        finalResults.push_back({itr->pageID, itr->value, itr->wordsAppeared});
     }
 
     sort(finalResults.begin(), finalResults.end(), cmp1);
-    for (int i = 0; i < finalResults.size(); ++i) {
+    for (int i = 0; i < 10; ++i) {
+        std::cout << finalResults[i].pageID << " " << finalResults[i].value << " " << finalResults[i].wordsAppeared << "\n";
         std::cout << "#" << i+1 << "\n" << pageLinks[finalResults[i].pageID] << "\n";
     }
 }

@@ -21,17 +21,12 @@ void resetFile(std::string name) {
     file.close();
 }
 
-bool cmp(PageInfo a, PageInfo b) {
-    return a.value > b.value;
-}
-
-void buildVT(int i) {
+/*void buildVT(int i) {
     vt.clear();
     std::set<PageInfo>::iterator itr;
     for (itr = wordPositions[i].begin(); itr != wordPositions[i].end(); ++itr)
         vt.push_back({itr->pageID, itr->value});
-    sort(vt.begin(), vt.end(), cmp);
-}
+}*/
 
 void prepare() {
     int numberOfThreads = 0, numberOfLinks = 0;
@@ -43,13 +38,13 @@ void prepare() {
     myFile.open("positions.txt", std::ios::app);
     for (int i = 0; i < wordPositions.size(); ++i) {
         myFile << words[i] << "\n";
-        buildVT(i);
+        //buildVT(i);
 
-        for (int j = 0; j < vt.size(); ++j)
-            myFile << vt[j].pageID << " ";
+        for (int j = 0; j < wordPositions[i].size(); ++j)
+            myFile << wordPositions[i][j].pageID << " ";
         myFile << "\n";
-        for (int j = 0; j < vt.size(); ++j)
-            myFile << vt[j].value << " ";
+        for (int j = 0; j < wordPositions[i].size(); ++j)
+            myFile << wordPositions[i][j].value << " ";
 
         myFile << "\n";
     }

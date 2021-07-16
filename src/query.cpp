@@ -6,6 +6,8 @@
 #include <string>
 #include <queue>
 #include <algorithm>
+#include <thread>
+#include <mutex>
 
 #include "storeWords.h"
 #include "query.h"
@@ -30,6 +32,7 @@ struct searchResult {
 std::vector<std::string> pageLinks, wordsToFind;
 std::vector<searchResult> finalResults;
 std::set<searchResult> results;
+int wordsAppeared = 0;
 
 void buildLinks() {
     std::string n;
@@ -47,6 +50,7 @@ void prepareQuery() {
 }
 
 void resetQuery() {
+    wordsAppeared = 0;
     wordsToFind.clear();
     finalResults.clear();
     results.clear();
@@ -85,6 +89,7 @@ void merge(std::vector<int> &ids, std::vector<int> &values) {
 void compare(std::string word, std::string idsString, std::string valuesString) {
     for (int i = 0; i < wordsToFind.size(); ++i) {
         if (word == wordsToFind[i]) {
+            ++wordsAppeared;
             std::vector<int> ids = fetchArray(idsString);
             std::vector<int> values = fetchArray(valuesString);
             merge(ids, values);
@@ -104,7 +109,7 @@ void printResult() {
 
     sort(finalResults.begin(), finalResults.end(), cmp1);
     for (int i = 0; i < std::min(10, int(finalResults.size())); ++i) {
-        std::cout << finalResults[i].pageID << " " << finalResults[i].value << " " << finalResults[i].wordsAppeared << "\n";
+        //std::cout << finalResults[i].pageID << " " << finalResults[i].value << " " << finalResults[i].wordsAppeared << "\n";
         std::cout << "#" << i+1 << "\n" << pageLinks[finalResults[i].pageID] << "\n";
     }
 }
@@ -119,6 +124,11 @@ void query(std::string goal) {
         std::string idsString, valuesString;
         std::getline(file, idsString);
         std::getline(file, valuesString);
+
+        if (wordsAppeared == wordsToFind.size()) {
+            printResult();
+            return;
+        }
 
         compare(word, idsString, valuesString);
     }

@@ -40,6 +40,8 @@ void crawl(std::string link) {
     listOfLinks.push_back(link);
     threads.push_back(std::thread(parseString, content, listOfLinks.size()));
     
+    //parseString(content, listOfLinks.size());
+
     std::cout << "#" << listOfLinks.size() << "\n";
     myMutex.unlock();
 

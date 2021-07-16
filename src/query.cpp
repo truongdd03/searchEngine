@@ -31,7 +31,8 @@ struct searchResult {
 
 std::vector<std::string> pageLinks, wordsToFind;
 std::vector<searchResult> finalResults;
-std::set<searchResult> results;
+//std::set<searchResult> results;
+std::vector<PageInfo> currentResults;
 int wordsAppeared = 0;
 
 void buildLinks() {
@@ -53,7 +54,7 @@ void resetQuery() {
     wordsAppeared = 0;
     wordsToFind.clear();
     finalResults.clear();
-    results.clear();
+    currentResults.clear();
 }
 
 std::vector<int> fetchArray(std::string s) {
@@ -74,15 +75,7 @@ std::vector<int> fetchArray(std::string s) {
 
 void merge(std::vector<int> &ids, std::vector<int> &values) {
     for (int i = 0; i < ids.size(); ++i) {
-        std::set<searchResult>::iterator itr = results.find({ids[i], 0, 0});
-        int cur = values[i], tmp = 1;
-        if (itr != results.end()) {
-            cur += itr->value;
-            tmp += itr->wordsAppeared;
-            results.erase(itr);
-        }
-
-        results.insert({ids[i], cur, tmp});
+        currentResults.push_back({ids[i], values[i]});
     }
 }
 
@@ -101,15 +94,29 @@ bool cmp1(searchResult a, searchResult b) {
     return a.wordsAppeared > b.wordsAppeared || (a.wordsAppeared == b.wordsAppeared && a.value > b.value);
 }
 
+bool cmp2(PageInfo a, PageInfo b) {
+    return a.pageID < b.pageID;
+}
+
 void printResult() {
-    std::set<searchResult>::iterator itr = results.begin();
-    for (itr = results.begin(); itr != results.end(); ++itr) {
-        finalResults.push_back({itr->pageID, itr->value, itr->wordsAppeared});
+    sort(currentResults.begin(), currentResults.end(), cmp2);
+    currentResults.push_back({-1, -1});
+    int curID = currentResults[0].pageID, curValue = currentResults[0].value, curAppeared = 1;
+    for (int i = 1; i < currentResults.size(); ++i) {
+        if (currentResults[i].pageID != currentResults[i-1].pageID) {
+            finalResults.push_back({curID, curValue, curAppeared});
+            curID = currentResults[i].pageID;
+            curValue = currentResults[i].value;
+            curAppeared = 1;
+        } else {
+            curValue += currentResults[i].value;
+            ++curAppeared;
+        }
     }
 
     sort(finalResults.begin(), finalResults.end(), cmp1);
     for (int i = 0; i < std::min(10, int(finalResults.size())); ++i) {
-        //std::cout << finalResults[i].pageID << " " << finalResults[i].value << " " << finalResults[i].wordsAppeared << "\n";
+        std::cout << finalResults[i].pageID << " " << finalResults[i].value << " " << finalResults[i].wordsAppeared << "\n";
         std::cout << "#" << i+1 << "\n" << pageLinks[finalResults[i].pageID] << "\n";
     }
 }

@@ -33,8 +33,7 @@ std::vector<int> getBloomID(std::string str) {
     return res;
 }
 
-bool isExisted(std::string content) {
-    std::string title = parseTitle(content);
+bool isExisted(std::string title) {
     std::vector<int> titleID = getBloomID(title);
 
     bloomMutex.lock();

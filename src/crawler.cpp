@@ -30,17 +30,14 @@ std::string reformat(std::string link) {
 
 void crawl(std::string link) {
     std::string content = parseContent(link);
+    std::string title = parseTitle(content);
 
-    if (isExisted(content)) {
-        //std::cout << "EXISTED " << link << "\n\n";
-        return;
-    }
+    if (isExisted(title)) return;
 
     myMutex.lock();
     listOfLinks.push_back(link);
     threads.push_back(std::thread(parseString, content, listOfLinks.size()));
-    
-    //parseString(content, listOfLinks.size());
+    threads.push_back(std::thread(parseString, title, listOfLinks.size()));
 
     std::cout << "#" << listOfLinks.size() << "\n";
     myMutex.unlock();

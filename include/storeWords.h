@@ -35,5 +35,7 @@ extern std::vector<std::vector<PageInfo>> wordPositions;
 
 extern std::set<Word> dict;
 
+void writeToFile(int id);
+
 void updateDict(std::string s, int linkID, int value);
 #endif

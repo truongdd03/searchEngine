@@ -32,7 +32,6 @@ struct searchResult {
 std::vector<std::string> pageLinks, wordsToFind;
 std::vector<searchResult> finalResults;
 std::vector<PageInfo> currentResults;
-int wordsAppeared = 0;
 
 void buildLinks() {
     std::string n;
@@ -50,7 +49,6 @@ void prepareQuery() {
 }
 
 void resetQuery() {
-    wordsAppeared = 0;
     wordsToFind.clear();
     finalResults.clear();
     currentResults.clear();
@@ -81,7 +79,6 @@ void merge(std::vector<int> &ids, std::vector<int> &values) {
 void compare(std::string word, std::string idsString, std::string valuesString) {
     for (int i = 0; i < wordsToFind.size(); ++i) {
         if (word == wordsToFind[i]) {
-            ++wordsAppeared;
             std::vector<int> ids = fetchArray(idsString);
             std::vector<int> values = fetchArray(valuesString);
             merge(ids, values);
@@ -115,28 +112,36 @@ void printResult() {
 
     sort(finalResults.begin(), finalResults.end(), cmp1);
     for (int i = 0; i < std::min(10, int(finalResults.size())); ++i) {
-        //std::cout << finalResults[i].pageID << " " << finalResults[i].value << " " << finalResults[i].wordsAppeared << "\n";
+        std::cout << finalResults[i].pageID << " " << finalResults[i].value << " " << finalResults[i].wordsAppeared << "\n";
         std::cout << "#" << i+1 << "\n" << pageLinks[finalResults[i].pageID] << "\n";
     }
 }
 
-void query(std::string goal) {
-    resetQuery();
-    wordsToFind = splitWords(goal);
-
-    std::ifstream file("positions.txt");
+void readFile(char firstCharacter) {
+    std::string name = ""; name.push_back(firstCharacter);
+    name += ".txt";
+    std::ifstream file(name);
     std::string word;
     while (std::getline(file, word)) {
         std::string idsString, valuesString;
         std::getline(file, idsString);
         std::getline(file, valuesString);
 
-        if (wordsAppeared == wordsToFind.size()) {
-            printResult();
-            return;
-        }
-
         compare(word, idsString, valuesString);
     }
+}
+
+void query(std::string goal) {
+    resetQuery();
+    wordsToFind = splitWords(goal);
+    sort(wordsToFind.begin(), wordsToFind.end());
+    wordsToFind.push_back("~_~");
+
+    for (int i = 1; i < wordsToFind.size(); ++i) {
+        if (wordsToFind[i-1][0] != wordsToFind[i][0]) {
+            readFile(wordsToFind[i-1][0]);
+        }
+    }
+
     printResult();
 }

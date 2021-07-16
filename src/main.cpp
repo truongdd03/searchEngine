@@ -26,20 +26,9 @@ void prepare() {
     std::cout << "Number of links: "; std::cin >> numberOfLinks;
     startCrawling(numberOfLinks);
 
-    std::ofstream myFile;
-    myFile.open("positions.txt", std::ios::app);
     for (int i = 0; i < wordPositions.size(); ++i) {
-        myFile << words[i] << "\n";
-
-        for (int j = 0; j < wordPositions[i].size(); ++j)
-            myFile << wordPositions[i][j].pageID << " ";
-        myFile << "\n";
-        for (int j = 0; j < wordPositions[i].size(); ++j)
-            myFile << wordPositions[i][j].value << " ";
-
-        myFile << "\n";
+        writeToFile(i);
     }
-    myFile.close();
 
     std::cout << "##### Finished #####\n";
 }
@@ -49,7 +38,6 @@ void readQuery() {
     while (true) {
         std::cout << "What are you searching? ";
         std::string goal; std::getline(std::cin, goal);
-        std::cout << "Loading...\n";
         query(goal);
     }
 }
@@ -62,7 +50,10 @@ int main() {
     char c; std::cin >> c;
     if (c == 'y') {
         resetFile("links.txt");
-        resetFile("positions.txt");
+        for (int i = 'a'; i <= 'z'; ++i) {
+            std::string str = ""; str.push_back(char(i));
+            resetFile(str + ".txt");
+        }
         prepare();
     }
 

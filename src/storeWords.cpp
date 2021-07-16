@@ -36,6 +36,24 @@ void buildStopWords() {
     }
 }
 
+void writeToFile(int id) {
+    std::ofstream myFile;
+    std::string name = ""; name.push_back(words[id][0]);
+    myFile.open(name + ".txt", std::ios::app);
+    myFile << words[id] << "\n";
+    
+    for (int i = 0; i < wordPositions[id].size(); ++i) {
+        myFile << wordPositions[id][i].pageID << " ";
+    }
+    myFile << "\n";
+    for (int i = 0; i < wordPositions[id].size(); ++i) {
+        myFile << wordPositions[id][i].value << " ";
+    }
+    myFile << "\n";
+    wordPositions[id].clear();
+
+}
+
 void updateDict(std::string s, int linkID, int value) {    
     if (!isImportant(s)) return;
 
@@ -51,6 +69,9 @@ void updateDict(std::string s, int linkID, int value) {
     } else {
         int id = itr->id;
         wordPositions[id].push_back({linkID, value});
+        if (wordPositions[id].size() >= 1000) {
+            writeToFile(id);
+        }
     }   
 
     dictMutex.unlock();

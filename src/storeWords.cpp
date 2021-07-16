@@ -50,7 +50,6 @@ void updateDict(std::string s, int linkID, int value) {
         dict.insert({s, int(wordPositions.size()-1)});
     } else {
         int id = itr->id;
-
         wordPositions[id].push_back({linkID, value});
     }   
 

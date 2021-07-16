@@ -91,7 +91,6 @@ void simplifyWord(std::string &str) {
     }
 
     str = stem(str);
-    //if (willStore) validateWord(str, linkID);
 }
 
 std::vector<std::string> splitWords(std::string str) {

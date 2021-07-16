@@ -21,24 +21,15 @@ void resetFile(std::string name) {
     file.close();
 }
 
-/*void buildVT(int i) {
-    vt.clear();
-    std::set<PageInfo>::iterator itr;
-    for (itr = wordPositions[i].begin(); itr != wordPositions[i].end(); ++itr)
-        vt.push_back({itr->pageID, itr->value});
-}*/
-
 void prepare() {
     int numberOfThreads = 0, numberOfLinks = 0;
-    std::cout << "Number of threads: "; std::cin >> numberOfThreads;
     std::cout << "Number of links: "; std::cin >> numberOfLinks;
-    startCrawling(numberOfThreads, numberOfLinks);
+    startCrawling(numberOfLinks);
 
     std::ofstream myFile;
     myFile.open("positions.txt", std::ios::app);
     for (int i = 0; i < wordPositions.size(); ++i) {
         myFile << words[i] << "\n";
-        //buildVT(i);
 
         for (int j = 0; j < wordPositions[i].size(); ++j)
             myFile << wordPositions[i][j].pageID << " ";
@@ -58,6 +49,7 @@ void readQuery() {
     while (true) {
         std::cout << "What are you searching? ";
         std::string goal; std::getline(std::cin, goal);
+        std::cout << "Loading...\n";
         query(goal);
     }
 }

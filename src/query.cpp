@@ -31,7 +31,6 @@ struct searchResult {
 
 std::vector<std::string> pageLinks, wordsToFind;
 std::vector<searchResult> finalResults;
-//std::set<searchResult> results;
 std::vector<PageInfo> currentResults;
 int wordsAppeared = 0;
 

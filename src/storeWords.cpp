@@ -7,7 +7,7 @@
 #include "storeWords.h"
 #include "stemmer.h"
 
-std::vector<std::set<PageInfo>> wordPositions;
+std::vector<std::vector<PageInfo>> wordPositions;
 std::set<Word> dict;
 std::vector<std::string> words;
 std::vector<std::string> stopWords;
@@ -42,8 +42,8 @@ void updateDict(std::string s, int linkID, int value) {
     dictMutex.lock();
     std::set<Word>::iterator itr = dict.find({s, 0});
     if (itr == dict.end()) {
-        std::set<PageInfo> tmp;
-        tmp.insert({linkID, value});
+        std::vector<PageInfo> tmp;
+        tmp.push_back({linkID, value});
 
         wordPositions.push_back(tmp);
         words.push_back(s);
@@ -51,12 +51,7 @@ void updateDict(std::string s, int linkID, int value) {
     } else {
         int id = itr->id;
 
-        std::set<PageInfo>::iterator ptr = wordPositions[id].find({linkID, 0});
-        if (ptr != wordPositions[id].end()) {
-            value += ptr->value;
-            wordPositions[id].erase(ptr);
-        }
-        wordPositions[id].insert({linkID, value});
+        wordPositions[id].push_back({linkID, value});
     }   
 
     dictMutex.unlock();

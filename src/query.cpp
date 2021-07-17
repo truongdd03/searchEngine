@@ -112,7 +112,7 @@ void printResult() {
 
     sort(finalResults.begin(), finalResults.end(), cmp1);
     for (int i = 0; i < std::min(10, int(finalResults.size())); ++i) {
-        std::cout << finalResults[i].pageID << " " << finalResults[i].value << " " << finalResults[i].wordsAppeared << "\n";
+        //std::cout << finalResults[i].pageID << " " << finalResults[i].value << " " << finalResults[i].wordsAppeared << "\n";
         std::cout << "#" << i+1 << "\n" << pageLinks[finalResults[i].pageID] << "\n";
     }
 }

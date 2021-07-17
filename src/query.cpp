@@ -33,6 +33,9 @@ std::vector<std::string> pageLinks, wordsToFind;
 std::vector<searchResult> finalResults;
 std::vector<PageInfo> currentResults;
 
+std::vector<std::thread> queryThreads;
+std::mutex queryMutex;
+
 void buildLinks() {
     std::string n;
     pageLinks.push_back("");
@@ -49,6 +52,7 @@ void prepareQuery() {
 }
 
 void resetQuery() {
+    queryThreads.clear();
     wordsToFind.clear();
     finalResults.clear();
     currentResults.clear();
@@ -127,7 +131,9 @@ void readFile(char firstCharacter) {
         std::getline(file, idsString);
         std::getline(file, valuesString);
 
+        queryMutex.lock();
         compare(word, idsString, valuesString);
+        queryMutex.unlock();
     }
 }
 
@@ -139,9 +145,13 @@ void query(std::string goal) {
 
     for (int i = 1; i < wordsToFind.size(); ++i) {
         if (wordsToFind[i-1][0] != wordsToFind[i][0]) {
-            readFile(wordsToFind[i-1][0]);
+            //readFile(wordsToFind[i-1][0]);
+            queryThreads.push_back(std::thread(readFile, wordsToFind[i-1][0]));
         }
     }
+
+    for (int i = 0; i < queryThreads.size(); ++i) 
+        queryThreads[i].join();
 
     printResult();
 }

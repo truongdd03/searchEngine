@@ -13,8 +13,9 @@ The search engine includes 3 main processes:
 The search engine includes 3 main processes: **Crawling**, **Parsing**, **Indexing**.
 
 ### Crawling
-- Using the idea of the BFS algorithm, links will be store in a queue. Then, each of them will be extracted, downloading the html files. 
-- **Optimization:** Multithreading is used to crawl multiple links at the same time.
+Using the idea of the BFS algorithm, links will be store in a queue. Then, each of them will be extracted, downloading the html files. 
+#### Optimization: 
+- Multithreading is used to crawl multiple links at the same time.
 
 ### Parsing
 - After receiving HTML files from the crawling process, links and web content will be parsed by finding specific tags. The program will check whether these new links have been crawled yet. If not, they will be pushed into the queue.

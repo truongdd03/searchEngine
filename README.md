@@ -8,16 +8,16 @@ A search engine written in c++.
 The search engine includes 3 main processes: **Crawling**, **Parsing**, **Indexing**.
 
 ### Crawling
-Using the idea of the BFS algorithm, links will be store in a queue. Then, each of them will be extracted, downloading the html files. 
+Using the idea of the BFS algorithm, links will be store in a queue. Then, each of them will be extracted to download the html files. 
 ##### Optimization: 
-- Multithreading: used to crawl multiple links at the same time.
+- Multithreading: crawl multiple links at the same time.
 - Bloom filter: detect crawled links.
 
 ### Parsing
 After receiving HTML files, links and web content will be parsed by finding specific tags. These links will be pushed into the queue in the crawling process.
 ##### Optimization: 
-- Multithreading.
-- Libcurl and regex_search: used to simplify code.
+- Multithreading: parse and crawl at the same time.
+- Libcurl and Regex_search: to simplify code.
 
 ### Indexing
 The web content from the parsing process will be split into single words. Then, they will be written to files based on their first character.

@@ -25,10 +25,10 @@ The search engine includes 3 main processes: **Crawling**, **Parsing**, **Indexi
 - Oleander Stemming Library: Stem words to reduce data storage.
 
 ### Search results
-- The results are based on the number of times the keywords appear on each page. Instead of starting crawling again each time the user search, this program will return results based on the indexed data, hence reduce search time.
+- The ranking is based on the number of times the keywords appear on each page. Instead of starting crawling again each time the user search, this program will return results based on the indexed data, hence reduce search time.
 
 
 ## External libraries
 
-- **libcurl:** Download web content.
-- **Oleander Stemming Library:** Reducing the amount of saving data.
+- [curlpp:](http://www.curlpp.org) Download web content.
+- [Oleander Stemming Library:](http://www.oleandersolutions.com/stemming/stemming.html) Reducing the amount of saving data.

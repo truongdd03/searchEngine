@@ -34,3 +34,7 @@ The ranking is based on the number of times the keywords appear on each page. In
 
 - [curlpp:](http://www.curlpp.org) Download web content.
 - [Oleander Stemming Library:](http://www.oleandersolutions.com/stemming/stemming.html) Reducing the amount of saving data.
+
+
+## Video Walkthrough
+![](demo.gif)
